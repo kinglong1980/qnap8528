@@ -1,0 +1,3330 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>QNAP8528 风扇控制台</title>
+    <style>
+        :root {
+            --bg: #f3f6fa;
+            --p: #fff;
+            --ink: #10243e;
+            --mut: #688;
+            --line: #dce5ee;
+            --blue: #1769df;
+            --green: #07805b;
+            --amber: #b86a00;
+            --red: #c83232;
+            --target: #7247d6;
+            --shadow: 0 8px 25px #173b6810;
+            --soft: #edf2f7;
+            /* 分段按钮/胶囊底 */
+            --card2: #fbfdff;
+            /* 图表/子卡底 */
+            --txt2: #687b90;
+            /* 次要文字 */
+            --txt3: #8595a8;
+            /* 更弱文字 */
+            --btn2: #fff;
+            /* 次按钮底 */
+            --grid: #e4ebf3;
+            /* 网格线 */
+            --toast: #10243e;
+            --livebg: #edf7f3;
+            /* PWM 监控卡底 */
+            --liveink: #235d4d;
+            /* PWM 监控卡文字/徽章底 */
+            --onbg: #e7f8f0;
+            /* 在线/启用底 */
+            --herograd: #eaf3ff
+                /* hero 渐变终点 */
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f1722;
+                --p: #16202e;
+                --ink: #dce7f5;
+                --mut: #8fa5bc;
+                --line: #263649;
+                --blue: #5aa2f0;
+                --green: #2fbf8f;
+                --amber: #e0a03c;
+                --red: #ef6b6b;
+                --target: #b48cf5;
+                --shadow: 0 8px 25px #00000066;
+                --soft: #1d2a3b;
+                --card2: #121b28;
+                --txt2: #93a7bd;
+                --txt3: #6d8098;
+                --btn2: #16202e;
+                --grid: #22344a;
+                --toast: #0a121d;
+                --livebg: #12271f;
+                --liveink: #2fbf8f;
+                --onbg: #143026;
+                --herograd: #1a2c44
+            }
+        }
+
+        /* 手动主题切换: localStorage 偏好优先于系统设置(body 类选择器特异性高于 :root) */
+        body.dark {
+            --bg: #0f1722;
+            --p: #16202e;
+            --ink: #dce7f5;
+            --mut: #8fa5bc;
+            --line: #263649;
+            --blue: #5aa2f0;
+            --green: #2fbf8f;
+            --amber: #e0a03c;
+            --red: #ef6b6b;
+            --target: #b48cf5;
+            --shadow: 0 8px 25px #00000066;
+            --soft: #1d2a3b;
+            --card2: #121b28;
+            --txt2: #93a7bd;
+            --txt3: #6d8098;
+            --btn2: #16202e;
+            --grid: #22344a;
+            --toast: #0a121d;
+            --livebg: #12271f;
+            --liveink: #2fbf8f;
+            --onbg: #143026;
+            --herograd: #1a2c44
+        }
+
+        body.light {
+            --bg: #f3f6fa;
+            --p: #fff;
+            --ink: #10243e;
+            --mut: #688;
+            --line: #dce5ee;
+            --blue: #1769df;
+            --green: #07805b;
+            --amber: #b86a00;
+            --red: #c83232;
+            --target: #7247d6;
+            --shadow: 0 8px 25px #173b6810;
+            --soft: #edf2f7;
+            --card2: #fbfdff;
+            --txt2: #687b90;
+            --txt3: #8595a8;
+            --btn2: #fff;
+            --grid: #e4ebf3;
+            --toast: #10243e;
+            --livebg: #edf7f3;
+            --liveink: #235d4d;
+            --onbg: #e7f8f0;
+            --herograd: #eaf3ff
+        }
+
+        .themeBtn {
+            border: 1px solid var(--line);
+            background: var(--btn2);
+            color: var(--ink);
+            border-radius: 99px;
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
+            line-height: 1;
+            cursor: pointer;
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0
+        }
+
+        .themeBtn:hover {
+            border-color: var(--blue)
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 14px/1.4 system-ui, "Microsoft YaHei", sans-serif;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%
+        }
+
+        img,
+        svg,
+        canvas {
+            max-width: 100%
+        }
+
+        .app {
+            max-width: 1360px;
+            margin: auto;
+            padding: 20px
+        }
+
+        .head {
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .brand small {
+            font-weight: 800;
+            letter-spacing: .12em;
+            color: var(--blue);
+            font-size: 10px
+        }
+
+        .brand h1 {
+            font-size: 21px;
+            margin: 1px 0
+        }
+
+        .headR {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .online {
+            position: relative;
+            background: var(--onbg);
+            color: var(--green);
+            font-weight: 700;
+            font-size: 12px;
+            padding: 5px 11px 5px 23px;
+            border-radius: 99px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color .15s, color .15s
+        }
+
+        .online:hover {
+            border-color: currentColor
+        }
+
+        .online:before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s infinite
+        }
+
+        .online.off {
+            color: var(--red)
+        }
+
+        .online.off:before {
+            background: var(--red);
+            animation: none
+        }
+
+        /* ---- 连接控制器弹窗(本地打开页面时手动指定后端 IP/端口) ---- */
+        .epmask {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #0006;
+            backdrop-filter: blur(2px)
+        }
+
+        .epmask.on {
+            display: flex
+        }
+
+        .epcard {
+            width: 100%;
+            max-width: 360px;
+            background: var(--p);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 18px 18px 14px;
+            box-shadow: 0 18px 50px #0006
+        }
+
+        .epcard h3 {
+            margin: 0 0 6px;
+            font-size: 15px
+        }
+
+        .epdesc {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--txt2);
+            margin-bottom: 14px
+        }
+
+        .eprow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px
+        }
+
+        .eprow span {
+            width: 42px;
+            font-size: 12px;
+            color: var(--txt2)
+        }
+
+        .eprow input {
+            flex: 1;
+            min-width: 0;
+            padding: 7px 10px;
+            font-size: 13px;
+            color: var(--ink);
+            background: var(--card2);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            outline: none
+        }
+
+        .eprow input:focus {
+            border-color: var(--blue)
+        }
+
+        .epacts {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 14px
+        }
+
+        .epmsg {
+            min-height: 16px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--amber)
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 #07805b55
+            }
+
+            70% {
+                box-shadow: 0 0 0 7px #07805b00
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 #07805b00
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 0 0 0 #2fbf8f55
+                }
+
+                70% {
+                    box-shadow: 0 0 0 7px #2fbf8f00
+                }
+
+                100% {
+                    box-shadow: 0 0 0 0 #2fbf8f00
+                }
+            }
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: 1.1fr repeat(4, 1fr);
+            gap: 10px;
+            margin: 8px 0 14px
+        }
+
+        .metric,
+        .panel {
+            background: var(--p);
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            box-shadow: var(--shadow)
+        }
+
+        .metric {
+            padding: 13px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transition: transform .15s, box-shadow .15s
+        }
+
+        .metric:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px #173b6822
+        }
+
+        .metric .label,
+        .muted {
+            font-size: 12px;
+            color: var(--txt2)
+        }
+
+        .metric .label {
+            display: block;
+            height: 18px;
+            line-height: 18px
+        }
+
+        .metric b {
+            display: flex;
+            align-items: center;
+            /* 不同字号都在 46px 行内垂直居中 */
+            font-size: 26px;
+            letter-spacing: -.05em;
+            height: 46px;
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .metric .muted {
+            display: block;
+            margin-top: 8px;
+            height: 17px;
+            line-height: 17px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .metric.hero {
+            background: linear-gradient(120deg, var(--p), var(--herograd))
+        }
+
+        .metric.hero b {
+            font-size: 38px;
+            color: var(--blue)
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+            gap: 14px
+        }
+
+        .panel {
+            padding: 17px;
+            min-width: 0
+        }
+
+        .ph {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 13px
+        }
+
+        .ph h2 {
+            font-size: 15px;
+            margin: 0
+        }
+
+        .right .ph {
+            background: var(--livebg);
+            border-radius: 9px;
+            padding: 10px 12px;
+            margin-bottom: 12px
+        }
+
+        .right .ph h2 {
+            display: inline-block;
+            padding: 2px 9px;
+            background: var(--liveink);
+            color: var(--livebg);
+            font: 700 15px/1.5 system-ui, "Microsoft YaHei", sans-serif;
+            letter-spacing: .06em;
+            border-radius: 6px;
+            margin: 0
+        }
+
+        .right .ph p {
+            margin: 6px 0 0;
+            color: var(--liveink);
+            font-size: 14px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums
+        }
+
+        .ph p {
+            margin: 7px 0 0;
+            font-size: 12px;
+            color: var(--txt2)
+        }
+
+        .seg {
+            background: var(--soft);
+            padding: 3px;
+            border-radius: 9px;
+            flex: 0 0 auto
+        }
+
+        .seg button,
+        .btn {
+            border: 0;
+            font: inherit;
+            cursor: pointer;
+            border-radius: 7px;
+            font-weight: 750
+        }
+
+        .seg button {
+            padding: 7px 12px;
+            background: transparent;
+            color: var(--txt2)
+        }
+
+        .seg button.on {
+            background: var(--p);
+            color: var(--blue);
+            box-shadow: 0 1px 4px #1232
+        }
+
+        .seg button.inactive {
+            opacity: 0.55
+        }
+
+        .curve {
+            height: 330px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--card2);
+            padding: 12px;
+            position: relative
+        }
+
+        .curve svg {
+            width: 100%;
+            height: 100%;
+            display: block
+        }
+
+        .g {
+            stroke: var(--grid)
+        }
+
+        .gx {
+            stroke: var(--grid);
+            stroke-dasharray: 3 5
+        }
+
+        .gt {
+            stroke: var(--grid);
+            stroke-width: 1;
+            stroke-dasharray: 4 4;
+            opacity: .9
+        }
+
+        .cross {
+            stroke: var(--blue);
+            stroke-dasharray: 4 3;
+            opacity: .55
+        }
+
+        .cvdot {
+            stroke: var(--p);
+            stroke-width: 2
+        }
+
+        .axis {
+            fill: var(--txt2);
+            font-size: 10px
+        }
+
+        .cap {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .08em
+        }
+
+        .ov {
+            fill: none;
+            stroke-width: 1.3;
+            stroke-dasharray: 5 4;
+            opacity: .8
+        }
+
+        .line-rpm {
+            fill: none;
+            stroke: var(--green);
+            stroke-width: 2.6;
+            stroke-linejoin: round;
+            stroke-linecap: round
+        }
+
+        .line-pwm {
+            fill: none;
+            stroke: var(--blue);
+            stroke-width: 2.6;
+            stroke-linejoin: round;
+            stroke-linecap: round
+        }
+
+        .dot-rpm {
+            fill: var(--card2);
+            stroke: var(--green);
+            stroke-width: 1.6
+        }
+
+        .dot-pwm {
+            fill: var(--card2);
+            stroke: var(--blue);
+            stroke-width: 1.6
+        }
+
+        .line-cpu {
+            fill: none;
+            stroke: var(--red);
+            stroke-width: 2.6;
+            stroke-linejoin: round;
+            stroke-linecap: round
+        }
+
+        .dot-cpu {
+            fill: var(--card2);
+            stroke: var(--red);
+            stroke-width: 1.6
+        }
+
+        .now {
+            fill: var(--green);
+            stroke: var(--p);
+            stroke-width: 2.5
+        }
+
+        .nowp {
+            fill: var(--blue);
+            stroke: var(--p);
+            stroke-width: 2.5
+        }
+
+        .nowc {
+            fill: var(--red);
+            stroke: var(--p);
+            stroke-width: 2.5
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            margin-top: 18px;
+            font-size: 12px;
+            color: var(--txt2)
+        }
+
+        .legend .stats {
+            flex: 0 0 100%;
+            margin-top: 2px;
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+            color: var(--txt2)
+        }
+
+        .legend .pidstat {
+            margin-top: 0;
+            color: var(--txt2)
+        }
+
+        .legend i {
+            display: inline-block;
+            width: 14px;
+            height: 0;
+            border-top: 3px solid;
+            border-radius: 2px;
+            vertical-align: middle;
+            margin-right: 6px
+        }
+
+        .legend .rpm i {
+            border-color: var(--green)
+        }
+
+        .legend .pwm i {
+            border-color: var(--blue)
+        }
+
+        .legend .cpu i {
+            border-color: var(--red)
+        }
+
+        .legend .target i {
+            border-color: var(--target)
+        }
+
+        .legend .note {
+            margin-left: auto;
+            color: var(--txt3)
+        }
+
+        .legend i.dash {
+            border-top-style: dashed
+        }
+
+        /* 窗口按钮: 与底部 RPM/CPU℃ 轴标注同一行, 在两标注之间水平居中
+           (左右内缩对应 SVG padL=48/padR=56 + 容器 padding 12, 使中点对齐绘图区中心) */
+        .winrow {
+            position: absolute;
+            left: 62px;
+            right: 70px;
+            bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none
+        }
+
+        .winrow .seg {
+            pointer-events: auto
+        }
+
+        .winrow .seg button {
+            padding: 3px 10px;
+            font-size: 12px;
+            line-height: 1.3
+        }
+
+        .legend span[data-key] {
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid var(--line);
+            background: var(--soft);
+            padding: 4px 11px;
+            border-radius: 8px;
+            transition: border-color .15s, color .15s
+        }
+
+        .legend span[data-key]:hover {
+            color: var(--ink);
+            border-color: var(--blue)
+        }
+
+        .legend span[data-key].off {
+            opacity: .4;
+            text-decoration: line-through
+        }
+
+        .manual {
+            display: none;
+            padding: 2px 0 4px
+        }
+
+        .manual.show {
+            display: block
+        }
+
+        /* ── 强制PWM 卡片（标题 → − 数值 + → 等效值 → 滑块 → 刻度 → 预设 → 操作 → 反馈） ── */
+        .mcard {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--p);
+            padding: 16px 18px 18px;
+            box-shadow: var(--shadow)
+        }
+
+        .mtop {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .mtitle {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: .02em
+        }
+
+        .mstep {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0 8px
+        }
+
+        .stepBtn {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            flex: 0 0 auto;
+            font: 800 17px/1 system-ui, "Microsoft YaHei", sans-serif;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--btn2);
+            color: var(--ink);
+            cursor: pointer;
+            /* 只过渡边框：background 参与过渡时，主题切换后本按钮会卡住旧底色 */
+            transition: border-color .15s
+        }
+
+        .stepBtn:hover {
+            border-color: var(--blue)
+        }
+
+        .stepBtn:active {
+            background: var(--soft)
+        }
+
+        .mval {
+            display: block;
+            min-width: 62px;
+            text-align: center;
+            font-size: 34px;
+            line-height: 1;
+            color: var(--ink);
+            letter-spacing: -.03em;
+            font-variant-numeric: tabular-nums
+        }
+
+        .meq {
+            display: block;
+            font-size: 12px;
+            color: var(--txt3);
+            margin: 0 0 12px 2px;
+            font-variant-numeric: tabular-nums
+        }
+
+        .chip {
+            background: var(--soft);
+            color: var(--txt2);
+            font-weight: 750;
+            font-size: 12px;
+            padding: 6px 11px;
+            border-radius: 99px;
+            white-space: nowrap
+        }
+
+        .chip.on {
+            background: var(--onbg);
+            color: var(--green)
+        }
+
+        /* 滑块：蓝色进度轨道 + 圆点滑块，--fill 由 mSyncFill() 写入 */
+        .mrange {
+            width: 100%;
+            height: 22px;
+            margin: 0 0 2px;
+            padding: 0;
+            background: transparent;
+            -webkit-appearance: none;
+            appearance: none;
+            accent-color: var(--blue);
+            cursor: pointer
+        }
+
+        .mrange::-webkit-slider-runnable-track {
+            height: 4px;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--blue) 0 var(--fill, 0%), var(--soft) var(--fill, 0%) 100%)
+        }
+
+        .mrange::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            margin-top: -6px;
+            border-radius: 50%;
+            background: var(--blue);
+            border: 2px solid var(--p)
+        }
+
+        .mrange::-moz-range-track {
+            height: 4px;
+            border-radius: 99px;
+            background: var(--soft)
+        }
+
+        .mrange::-moz-range-progress {
+            height: 4px;
+            border-radius: 99px;
+            background: var(--blue)
+        }
+
+        .mrange::-moz-range-thumb {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: var(--blue);
+            border: 2px solid var(--p)
+        }
+
+        .mpreset {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0 0 14px
+        }
+
+        .mpreset .btn {
+            flex: 1 1 0;
+            min-width: 54px;
+            padding: 8px 0;
+            font-size: 13px
+        }
+
+        .evlist {
+            max-height: 200px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px
+        }
+
+        .evrow {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: var(--card2);
+            font-variant-numeric: tabular-nums
+        }
+
+        .evrow span {
+            color: var(--txt3);
+            margin-right: 8px
+        }
+
+        .evrow.warning {
+            color: var(--amber)
+        }
+
+        .evrow.critical {
+            color: var(--red);
+            font-weight: 700
+        }
+
+        .mticks {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--txt3);
+            font-variant-numeric: tabular-nums;
+            margin: 0 0 14px;
+            padding: 0 1px
+        }
+
+        .macts {
+            display: flex;
+            gap: 10px;
+            margin: 0 0 16px;
+            flex-wrap: wrap
+        }
+
+        .macts .btn {
+            padding: 9px 18px
+        }
+
+        .mfeed {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 0
+        }
+
+        .mfeed div {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 14px 12px;
+            background: var(--p)
+        }
+
+        .mfeed span {
+            display: block;
+            font-size: 12px;
+            color: var(--txt3);
+            margin-bottom: 2px
+        }
+
+        .mfeed b {
+            display: block;
+            font-size: 21px;
+            line-height: 1.25;
+            color: var(--ink);
+            letter-spacing: -.02em;
+            font-variant-numeric: tabular-nums
+        }
+
+        .btn {
+            padding: 9px 14px
+        }
+
+        .secondary {
+            background: var(--btn2);
+            border: 1px solid var(--line);
+            color: var(--txt2)
+        }
+
+        .primary {
+            background: var(--blue);
+            color: white
+        }
+
+        .primary:disabled {
+            opacity: .4
+        }
+
+        .right {
+            display: flex;
+            flex-direction: column;
+            gap: 14px
+        }
+
+        .sensors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px
+        }
+
+        .sensor {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 9px
+        }
+
+        .sensor span {
+            display: block;
+            font-size: 12px;
+            color: var(--txt2)
+        }
+
+        .sensor b {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: baseline;
+            gap: 10px;
+            font-size: 16px;
+            line-height: 1.45;
+            letter-spacing: -.02em;
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none
+        }
+
+        .sensor b .tcell {
+            white-space: nowrap;
+            flex: 0 0 auto
+        }
+
+        .live {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--livebg);
+            border-radius: 9px;
+            color: var(--liveink)
+        }
+
+        .live .label {
+            display: inline-block;
+            padding: 2px 9px;
+            background: var(--liveink);
+            color: var(--livebg);
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            border-radius: 6px
+        }
+
+        .live strong {
+            display: block;
+            margin-top: 7px;
+            font-size: 14px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums
+        }
+
+        .mini {
+            display: block;
+            width: 100%;
+            height: 170px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            margin-top: 12px;
+            background: var(--card2)
+        }
+
+        .diag {
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 11px;
+            color: var(--txt2);
+            font-size: 12px
+        }
+
+        .diag summary {
+            cursor: pointer;
+            font-weight: 700
+        }
+
+        .diag div {
+            padding-top: 8px;
+            display: grid;
+            gap: 5px
+        }
+
+        .diag code {
+            word-break: break-all
+        }
+
+        .diag strong {
+            color: var(--ink);
+            font-variant-numeric: tabular-nums
+        }
+
+        .toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            max-width: calc(100vw - 40px);
+            background: var(--toast);
+            color: #fff;
+            padding: 11px 14px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: .2s
+        }
+
+        /* ── 模式状态点 / 温度阈值色 / 手动横幅 / tooltip / 曲线编辑器 ── */
+        #modeTop {
+            display: flex;
+            align-items: center;
+            gap: 7px
+        }
+
+        #modeTop:before {
+            content: '';
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #8fa0b5;
+            flex: 0 0 auto
+        }
+
+        #modeTop.mode-auto:before {
+            background: var(--green)
+        }
+
+        #modeTop.mode-manual {
+            color: var(--amber)
+        }
+
+        #modeTop.mode-manual:before {
+            background: var(--amber)
+        }
+
+        .t-ok {
+            color: var(--green)
+        }
+
+        .t-warm {
+            color: var(--amber)
+        }
+
+        .t-hot {
+            color: var(--red)
+        }
+
+        .t-crit {
+            color: var(--red);
+            font-weight: 800;
+            animation: tpulse 1s ease-in-out infinite
+        }
+
+        @keyframes tpulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .35
+            }
+        }
+
+        .banner.crit {
+            background: var(--red);
+            animation: tpulse 1.6s ease-in-out infinite
+        }
+
+        .banner {
+            display: none;
+            margin: 0 0 12px;
+            padding: 9px 14px;
+            border-radius: 9px;
+            background: var(--amber);
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px
+        }
+
+        .banner.on {
+            display: block
+        }
+
+        .tip {
+            position: absolute;
+            pointer-events: none;
+            padding: 6px 9px;
+            border-radius: 5px;
+            font-size: 13px;
+            line-height: 1.4;
+            z-index: 999;
+            white-space: nowrap;
+            transform: translate(-50%, -110%);
+            opacity: 0;
+            transition: opacity .1s;
+            /* 亮色主题默认 */
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        body.dark .tip {
+            background: #1f2937;
+            color: #f9fafb;
+            border: 1px solid #4b5563;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        }
+
+        body.light .tip {
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .curve {
+            position: relative
+        }
+
+        .cvedit {
+            margin-top: 12px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 11px;
+            font-size: 12px;
+            color: var(--txt2)
+        }
+
+        .cvedit summary {
+            cursor: pointer;
+            font-weight: 700
+        }
+
+        .cvedit .cvbody {
+            padding-top: 10px;
+            display: grid;
+            gap: 10px
+        }
+
+        #curveSvg {
+            width: 100%;
+            height: 170px;
+            display: block;
+            background: var(--card2);
+            border-radius: 8px;
+            touch-action: none
+        }
+
+        #curveSvg circle {
+            cursor: grab
+        }
+
+        #curveSvg circle:active {
+            cursor: grabbing
+        }
+
+        .cvrows {
+            display: grid;
+            gap: 6px
+        }
+
+        .cvrow {
+            display: grid;
+            grid-template-columns: 52px 1fr 58px 26px;
+            gap: 8px;
+            align-items: center
+        }
+
+        .cvrow input {
+            font: inherit;
+            padding: 4px 7px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--btn2);
+            color: var(--ink)
+        }
+
+        .cvrow button {
+            border: 0;
+            background: none;
+            color: var(--red);
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 15px
+        }
+
+        .cvacts {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .pidgrid {
+            display: grid;
+            grid-template-columns: 64px 1fr 64px 1fr;
+            gap: 8px;
+            align-items: center
+        }
+
+        .pidgrid span {
+            font-size: 12px;
+            color: var(--txt2)
+        }
+
+        .pidgrid input,
+        .pidgrid select {
+            font: inherit;
+            padding: 4px 7px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--btn2);
+            color: var(--ink);
+            width: 100%
+        }
+
+        .toast.on {
+            opacity: 1
+        }
+
+        /* <=1024: 平板 / 手机(含桌面版模式的 980px 布局视口)统一单列 */
+        @media(max-width:1024px) {
+            .main {
+                grid-template-columns: minmax(0, 1fr)
+            }
+
+            .metrics {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .metric.hero {
+                grid-column: span 2
+            }
+
+            .app {
+                padding: 14px
+            }
+
+            .head {
+                height: auto;
+                margin-bottom: 8px;
+                flex-wrap: wrap;
+                gap: 8px
+            }
+
+            .headR {
+                flex-wrap: wrap
+            }
+
+            .ph {
+                flex-wrap: wrap
+            }
+        }
+
+        @media(max-width:520px) {
+            .app {
+                padding: 10px
+            }
+
+            .metrics {
+                gap: 7px
+            }
+
+            .metric {
+                padding: 10px
+            }
+
+            .metric b {
+                font-size: 20px
+            }
+
+            .metric.hero b {
+                font-size: 30px
+            }
+
+            .main {
+                gap: 10px
+            }
+
+            .ph {
+                flex-direction: column
+            }
+
+            .head {
+                height: auto;
+                margin-bottom: 8px
+            }
+
+            .brand h1 {
+                font-size: 18px
+            }
+
+            .brand small {
+                font-size: 9px;
+                letter-spacing: .06em
+            }
+
+            .online {
+                padding: 4px 9px 4px 20px;
+                font-size: 11px
+            }
+
+            .curve {
+                height: 240px;
+                padding: 8px
+            }
+
+            .winrow {
+                left: 56px;
+                right: 64px;
+                bottom: 8px
+            }
+
+            .seg button {
+                padding: 6px 9px;
+                font-size: 12px
+            }
+
+            .btn {
+                padding: 8px 11px
+            }
+
+            .mpreset {
+                flex-wrap: wrap
+            }
+
+            .mpreset .btn {
+                flex: 1 1 28%;
+                padding: 6px 0
+            }
+
+            .mtop {
+                flex-wrap: wrap
+            }
+
+            .mfeed {
+                gap: 7px
+            }
+
+            .pidgrid {
+                grid-template-columns: 72px 1fr
+            }
+
+            .cvrow {
+                grid-template-columns: 40px 1fr 44px 20px;
+                gap: 5px
+            }
+
+            .cvrow input,
+            .pidgrid input,
+            .pidgrid select {
+                min-width: 0;
+                width: 100%
+            }
+
+            /* iOS 对 <16px 的输入框会自动放大页面, 统一到 16px 避免误触缩放 */
+            input,
+            select,
+            textarea {
+                font-size: 16px
+            }
+
+            .legend {
+                gap: 8px 10px
+            }
+
+            .legend .note {
+                margin-left: 0;
+                flex: 0 0 100%
+            }
+
+            .diag code {
+                font-size: 11px
+            }
+        }
+
+        .macts .btn.primary.btn-active {
+            background-color: var(--amber);
+            color: #ffffff !important;
+        }
+
+        /* 消除焦点残留高亮 */
+        .macts button:focus {
+            outline: none;
+        }
+
+        /* 按钮按下瞬间效果 */
+        .macts .btn:active {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="app">
+        <header class="head">
+            <div class="brand"><small>QNAP8528 · THERMAL CONTROL</small>
+                <h1>风扇控制台</h1>
+            </div>
+            <div class="headR">
+                <div class="online" id="online" onclick="openEndpoint()" title="点击设置控制器地址">控制器在线</div>
+                <button class="themeBtn" id="themeBtn" onclick="themeToggle()" title="切换亮色/暗色主题"></button>
+            </div>
+        </header>
+        <div class="banner" id="modeBanner">手动强制模式生效中 · 风扇输出已锁定，不受温度控制</div>
+        <div class="banner crit" id="overBanner">紧急超温保护中 · 传感器达 70℃，风扇已强制满速</div>
+        <section class="metrics">
+            <div class="metric hero"><span class="label">当前控制温度</span><b id="avg">--°C</b><span class="muted"
+                    id="source">等待传感器</span></div>
+            <div class="metric"><span class="label">风扇转速</span><b id="rpm">--</b><span class="muted">RPM · 实时反馈</span>
+            </div>
+            <div class="metric"><span class="label">风扇输出</span><b id="out">--%</b><span class="muted" id="raw">目标 -- /
+                    实时 --</span></div>
+            <div class="metric"><span class="label">最高传感器</span><b id="hot">--°C</b><span class="muted"
+                    id="hotSrc">--</span></div>
+            <div class="metric"><span class="label">控制模式</span><b id="modeTop">监控</b><span class="muted"
+                    id="fresh">--</span></div>
+        </section>
+        <section class="main">
+            <section class="panel">
+                <div class="ph">
+                    <div>
+                        <h2 id="chartTitle">风扇状态 · RPM</h2>
+                        <p id="chartDesc">历史窗口内 RPM 随时间的变化，右侧为对应 CPU 温度（横轴：时间），竖虚线为事件标记。</p>
+                    </div>
+                    <div class="seg">
+                        <button id="tab-rpm" class="on" onclick="setView('rpm')">RPM</button>
+                        <button id="tab-pwm" class="inactive" onclick="setView('pwm')">PWM</button>
+                        <button id="tab-manual" class="inactive" onclick="setView('manual')">手动</button>
+                    </div>
+                </div>
+
+                <div id="chartArea">
+                    <div class="curve"><svg id="chart" preserveAspectRatio="none"></svg>
+                        <div class="tip" id="tip"></div>
+                        <div class="winrow">
+                            <div class="seg">
+                                <button id="win-3m" class="on" onclick="setWin(180000)">3 分</button>
+                                <button id="win-10m" class="inactive" onclick="setWin(600000)">10 分</button>
+                                <button id="win-30m" class="inactive" onclick="setWin(1800000)">30 分</button>
+                                <button id="win-1h" class="inactive" onclick="setWin(3600000)">1 时</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="legend" id="legend">
+                        <span class="rpm"><i></i>转速 RPM（左轴）</span>
+                        <span class="cpu"><i></i>CPU 温度（右轴）</span>
+                        <span class="note" id="chartNote">采样2秒 · 保留3分钟</span>
+                    </div>
+
+                    <details class="cvedit" id="cvedit">
+                        <summary title="step/linear 模式的温度-PWM 曲线，可拖动圆点调整">曲线编辑</summary>
+                        <div class="cvbody">
+                            <svg id="curveSvg"></svg>
+                            <div class="cvrows" id="cvRows"></div>
+                            <div class="cvacts">
+                                <button class="btn secondary" onclick="cvAdd()">添加点</button>
+                                <button class="btn secondary" onclick="cvReload()">还原</button>
+                                <button class="btn primary" id="cvSave" onclick="cvSave()">保存曲线</button>
+                                <span id="cvMsg"></span>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="cvedit" id="pidEdit">
+                        <summary title="Kp/Ki/Kd、目标温度、开机快转 PWM、运行下限 PWM、控温依据">PID参数编辑</summary>
+                        <div class="cvbody">
+                            <div class="pidgrid">
+                                <span>Kp</span><input type="number" id="pidKp" step="0.1" min="0">
+                                <span>Ki</span><input type="number" id="pidKi" step="0.001" min="0">
+                                <span>Kd</span><input type="number" id="pidKd" step="0.1" min="0">
+                                <span>目标℃</span><input type="number" id="pidTarget" step="1" min="30" max="80">
+                                <span title="服务启动后前 10 秒固定输出的风扇 PWM，用于确认风扇正常并快速排热">开机快转PWM</span><input type="number"
+                                    id="bootBoost" step="1" min="0" max="255">
+                                <span title="开机快转结束后、自动调速阶段允许的最低 PWM">运行下限PWM</span><input type="number" id="bootMin"
+                                    step="1" min="0" max="255">
+                                <span
+                                    title="参与风扇调速的传感器范围: all=全部最大(默认) / cpu=仅CPU / disk=仅硬盘。SSD 超过 60℃ 时无论选择如何都会参与高温保护">控温依据</span>
+                                <select id="tempSource">
+                                    <option value="all">全部最大（默认）</option>
+                                    <option value="cpu">仅 CPU</option>
+                                    <option value="disk">仅硬盘</option>
+                                </select>
+                            </div>
+
+                            <div class="cvacts">
+                                <button class="btn secondary" onclick="pidReload()">还原</button>
+                                <button class="btn secondary"
+                                    title="填入脚本内置默认参数(Kp15/Ki0.032/Kd2.6/目标45℃/下限60/快转140), 需再点保存生效"
+                                    onclick="pidDefaults()">恢复默认</button>
+                                <button class="btn primary" onclick="pidSave()">保存PID参数</button>
+                                <span id="pidMsg"></span>
+                            </div>
+
+                        </div>
+                    </details>
+                </div>
+
+                <div id="manualArea" class="manual">
+                    <div class="mcard">
+                        <!-- 标题行：左侧标题，右侧状态徽章 -->
+                        <div class="mtop">
+                            <span class="mtitle">强制PWM</span>
+                            <span class="chip" id="mState">未启用</span>
+                        </div>
+
+                        <!-- 步进行：− 原始PWM + -->
+                        <div class="mstep">
+                            <button class="stepBtn" onclick="pwmStep(-1)" title="PWM 减 1" aria-label="PWM 减 1">−</button>
+                            <b class="mval" id="mVal">65</b>
+                            <button class="stepBtn" onclick="pwmStep(+1)" title="PWM 加 1" aria-label="PWM 加 1">+</button>
+                        </div>
+                        <span class="meq" id="mInfo">等效 422 RPM</span>
+
+                        <!-- 滑块：原始 PWM 16~255，step 1；拖动按 5 级粗调，± 按钮与预设按 1 级精调
+                             下限必须是 16：硬件按百分比取整，写 15 实际只到 12（堵转），16 落到 15 才能维持最低转速 -->
+                        <input class="mrange" id="mSlide" type="range" min="16" max="255" step="1" value="65"
+                            oninput="mChange()">
+                        <!-- 刻度：15~255 均分 6 段（15/55/95/135/175/215/255）；首格写 15 只为文字均分好看，滑块实际下限仍是 16 -->
+                        <div class="mticks">
+                            <span>15</span><span>55</span><span>95</span><span>135</span><span>175</span><span>215</span><span>255</span>
+                        </div>
+
+                        <!-- 快捷预设：直接下发原始 PWM 值 -->
+                        <div class="mpreset">
+                            <button class="btn secondary" onclick="mPreset(16)">16</button>
+                            <button class="btn secondary" onclick="mPreset(51)">51</button>
+                            <button class="btn secondary" onclick="mPreset(102)">102</button>
+                            <button class="btn secondary" onclick="mPreset(153)">153</button>
+                            <button class="btn secondary" onclick="mPreset(204)">204</button>
+                            <button class="btn secondary" onclick="mPreset(255)">255</button>
+                        </div>
+
+                        <div class="macts">
+                            <button id="btnForce" class="btn primary" onclick="forceSpeed(false)">强制生效</button>
+                            <button id="btnAuto" class="btn secondary" onclick="restoreAuto()">恢复自动温控</button>
+                        </div>
+
+                        <!-- 硬件实际反馈 -->
+                        <div class="mfeed">
+                            <div><span>实际转速</span><b id="mRpm">-- RPM</b></div>
+                            <div><span>实际输出</span><b id="mPwm">--</b></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <aside class="right">
+                <section class="panel">
+                    <div class="ph">
+                        <div>
+                            <h2>实时监测</h2>
+                            <p>页面仅做监控，实时反馈硬件状态。</p>
+                        </div>
+                    </div>
+                    <div class="sensors">
+                        <div class="sensor"><span>CPU</span><b id="cpu">--°C</b></div>
+                        <div class="sensor"><span>主板</span><b id="board">--°C</b></div>
+                        <div class="sensor" id="nvmeCard"><span>NVMe</span><b id="nvme">--°C</b></div>
+                        <div class="sensor"><span>硬盘</span><b id="disk">--°C</b></div>
+                    </div>
+                    <div class="live"><span class="label">PWM监测</span><strong id="segment">目标 -- / 实时 --</strong>
+                    </div><canvas class="mini" id="mini"></canvas>
+                </section>
+                <details class="diag">
+                    <summary title="模块加载状态、PWM 读写权限、hwmon 路径、fanK 自学习系数">高级诊断</summary>
+                    <div>
+                        <span id="module">--</span>
+                        <span id="access">--</span>
+                        <code id="path">--</code>
+                        <span>fanK 自学习系数：<strong id="fank-value">--</strong></span>
+                        <span>后端地址：<code id="apiBase">--</code></span>
+                    </div>
+                </details>
+
+                <details class="diag">
+                    <summary title="堵转 / 超温 / 参数变更，保留最近 50 条">事件记录</summary>
+                    <div class="evlist" id="evList"><span class="muted">暂无事件</span></div>
+                </details>
+            </aside>
+        </section>
+    </main>
+    <div class="toast" id="toast"></div>
+
+    <!-- 连接控制器: 页面不在 NAS 上时, 手动填写后端 IP/端口 -->
+    <div class="epmask" id="epMask" onclick="if(event.target===this) closeEndpoint()">
+        <div class="epcard" role="dialog" aria-modal="true" aria-labelledby="epTitle">
+            <h3 id="epTitle">连接控制器</h3>
+            <div class="epdesc">页面从本地文件打开时读不到后端。填写 NAS 的 IP 与监听端口即可远程读取（脚本默认端口 18080）。</div>
+            <label class="eprow"><span>IP</span><input id="epHost" placeholder="192.168.1.100" autocomplete="off" spellcheck="false"></label>
+            <label class="eprow"><span>端口</span><input id="epPort" type="number" min="1" max="65535" placeholder="18080"></label>
+            <div class="epacts">
+                <button class="btn secondary" onclick="resetEndpoint()">恢复同源</button>
+                <button class="btn secondary" onclick="closeEndpoint()">取消</button>
+                <button class="btn primary" id="epSave" onclick="saveEndpoint()">连接</button>
+            </div>
+            <div class="epmsg" id="epMsg"></div>
+        </div>
+    </div>
+    <script>
+        /* ══════════════════════════════════════════════════════════════════════
+           脚本分区（按通用前端规范：常量 → 数据 → 计算 → 渲染 → 交互 → 启动）
+           [1] 全局状态与常量            [8] 手动强制 PWM
+           [2] 后端地址与连接弹窗        [9] 状态采集与渲染 paint
+           [3] 主题与配色                [10] 迷你曲线
+           [4] 通用工具                  [11] 曲线编辑器
+           [5] 图表配置                  [12] PID 参数编辑器
+           [6] 曲线数据计算              [13] 启动初始化与事件绑定
+           [7] 主曲线（量程/坐标/图层/悬停）
+           ══════════════════════════════════════════════════════════════════════ */
+
+        // 脚本全局变量
+        /* ========== [1] 全局状态与常量 ========== */
+        let D, logs = [];
+        let miniLogs = [];      // 模块级: graph() 每帧写入当前时间窗口的采样, 迷你图悬停处理器读取同一份数组取下标
+        let miniHover = null;
+        let mp = 65, mTouched = false;
+        let forceTimer = null;
+        let viewMode = 'rpm';
+
+        /* ========== [2] 后端地址与连接弹窗 ========== */
+        /* ───────── 后端地址 ─────────
+           默认为空 = 同源: 页面由脚本自身的 HTTP 服务提供时直接用相对路径(放同目录即可, 零配置)。
+           本地双击打开文件时没有同源后端, 由"控制器不可达"徽章点开弹窗填写 NAS 的 IP/端口,
+           存进 localStorage(fanApiBase), 之后所有 /api 请求都指向该地址。 */
+        const API_KEY = 'fanApiBase';
+        const API_DEFAULT_PORT = 18080;
+        let API_BASE = (localStorage.getItem(API_KEY) || '').replace(/\/+$/, '');
+        const apiUrl = p => API_BASE + p;
+
+        /* 当前后端地址的可读描述 */
+        const apiLabel = () => {
+            if (API_BASE) return API_BASE.replace(/^https?:\/\//, '');
+            return location.protocol === 'file:' ? '未设置' : location.host;
+        };
+
+        /* 输入归一化: 允许直接粘 "192.168.1.10" / "192.168.1.10:18080" / "http://192.168.1.10:18080" */
+        function buildBase(hostRaw, portRaw) {
+            let host = String(hostRaw || '').trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+            let port = String(portRaw || '').trim();
+            if (!host) return { err: '请填写 NAS 的 IP 或主机名' };
+            // 主机串里自带端口时以它为准
+            const m = host.match(/^(.*?):(\d+)$/);
+            if (m) { host = m[1]; port = m[2]; }
+            if (!port) port = String(API_DEFAULT_PORT);
+            const pnum = Number(port);
+            if (!Number.isInteger(pnum) || pnum < 1 || pnum > 65535) return { err: '端口需为 1–65535 的整数' };
+            if (!/^[A-Za-z0-9._-]+$/.test(host)) return { err: 'IP / 主机名含有非法字符' };
+            return { base: `http://${host}:${pnum}` };
+        }
+
+        function openEndpoint() {
+            const cur = API_BASE.replace(/^https?:\/\//, '');
+            const hostEl = $('epHost'), portEl = $('epPort');
+            if (cur) {
+                const m = cur.match(/^(.*?):(\d+)$/);
+                hostEl.value = m ? m[1] : cur;
+                portEl.value = m ? m[2] : API_DEFAULT_PORT;
+            } else {
+                hostEl.value = '';
+                portEl.value = String(API_DEFAULT_PORT);
+            }
+            $('epMsg').textContent = '';
+            $('epMask').classList.add('on');
+            setTimeout(() => hostEl.focus(), 60);
+        }
+
+        function closeEndpoint() {
+            $('epMask').classList.remove('on');
+        }
+
+        function setApiBase(base) {
+            API_BASE = base || '';
+            if (API_BASE) localStorage.setItem(API_KEY, API_BASE);
+            else localStorage.removeItem(API_KEY);
+            logs = [];
+            miniLogs = [];
+            monitorData.length = 0;      // 切后端时清空历史, 避免新旧数据混在一张图上
+            graph('mini');               // 无数据 → 占位态
+            refreshApiHint();            // 高级诊断里的地址立即跟着变
+            get();
+            getLog();
+        }
+
+        function saveEndpoint() {
+            const r = buildBase($('epHost').value, $('epPort').value);
+            if (r.err) { $('epMsg').textContent = r.err; return; }
+            const btn = $('epSave');
+            btn.disabled = true;
+            $('epMsg').textContent = '正在连接…';
+            const probe = `${r.base}/api/status`;
+            fetch(probe).then(x => {
+                if (!x.ok) throw new Error('HTTP ' + x.status);
+                return x.json();
+            }).then(() => {
+                btn.disabled = false;
+                closeEndpoint();
+                setApiBase(r.base);
+                toast('已连接 ' + r.base.replace(/^https?:\/\//, ''));
+            }).catch(() => {
+                btn.disabled = false;
+                // 连不上也允许保存: 可能是服务未启动或非默认端口的口令问题, 用户可稍后再试
+                $('epMsg').textContent = '暂时连不上，已保存地址，稍后会自动重试';
+                API_BASE = r.base;
+                localStorage.setItem(API_KEY, r.base);
+                refreshApiHint();
+            });
+        }
+
+        function resetEndpoint() {
+            closeEndpoint();
+            setApiBase('');
+            toast('已恢复同源地址');
+        }
+
+        /* 高级诊断里的地址显示 */
+        function refreshApiHint() {
+            const el = $('apiBase');
+            if (el) el.textContent = apiLabel();
+            const on = $('online');
+            if (on) on.title = API_BASE ? `当前后端 ${apiLabel()} · 点击修改` : '点击设置控制器地址';
+        }
+
+
+        // 风扇自学习：pwm → rpm 换算系数，兜底默认6.5
+        let fanK = 6.5;
+        const MIN_VALID_PWM = 12;          // 低于该PWM，风扇非线性，不参与学习
+        const MAX_PWM_DELTA = 18;          // 前后样本PWM变化超过该值判定为瞬态过渡点，丢弃
+        const MIN_LEARN_SAMPLE = 8;        // 最少需要8个有效样本才会更新自学习系数
+
+        /* 主题三态循环: 暗 → 亮 → 跟随系统; localStorage(fanTheme) 记忆, 未设置默认暗色。
+           图标显示"点击后切换到的目标": 暗色显示☀️, 亮色显示🌓, 跟随系统显示🌙 */
+        /* ========== [3] 主题与配色 ========== */
+        const sysDarkMq = matchMedia('(prefers-color-scheme: dark)');
+        let themePref = localStorage.getItem('fanTheme');
+        if (!['dark', 'light', 'auto'].includes(themePref)) themePref = 'dark';
+        const isDark = themePref === 'dark' ? true
+            : themePref === 'light' ? false : sysDarkMq.matches;
+        document.body.classList.add(isDark ? 'dark' : 'light');
+        if (themePref === 'auto') sysDarkMq.addEventListener?.('change', () => location.reload());
+
+        function themeToggle() {
+            const next = { dark: 'light', light: 'auto', auto: 'dark' }[themePref] || 'dark';
+            localStorage.setItem('fanTheme', next);
+
+            // ✅ 不再 reload，直接切换 class
+            document.body.classList.remove(themePref);
+            document.body.classList.add(next);
+            themePref = next;
+
+            // 更新按钮图标
+            const btn = $('themeBtn');
+            const map = {
+                dark: ['☀️', '当前暗色 · 点击切换亮色'],
+                light: ['🌓', '当前亮色 · 点击切换为跟随系统'],
+                auto: ['🌙', '跟随系统中 · 点击切换暗色']
+            };
+            const [icon, tip] = map[themePref] || map.dark;
+            btn.textContent = icon;
+            btn.title = tip;
+
+            // 重绘图表
+            if (viewMode !== 'manual') drawChart(viewMode);
+            graph('mini');
+        }
+
+        (function () {
+            const btn = document.getElementById('themeBtn');
+            const map = {
+                dark: ['☀️', '当前暗色 · 点击切换亮色'],
+                light: ['🌓', '当前亮色 · 点击切换为跟随系统'],
+                auto: ['🌙', '跟随系统中 · 点击切换暗色'],
+            };
+            const [icon, tip] = map[themePref] || map.dark;
+            btn.textContent = icon;
+            btn.title = tip;
+        })();
+
+        const SERIES_COLORS = isDark
+            ? { rpm: '#2fbf8f', pwm: '#5aa2f0', cpu: '#ef6b6b', tgt: '#e0a03c' }
+            : { rpm: '#07805b', pwm: '#1769df', cpu: '#c83232', tgt: '#b86a00' };
+
+        const tempClass = v => v >= 70 ? 't-crit' : v >= 65 ? 't-hot' : v >= 55 ? 't-warm' : 't-ok';
+
+        const monitorData = [];            // { ts, rpm, pwm, avg }
+        let WINDOW_MS = 180000;            // 图表历史窗口, 可切 3分/30分/1时
+        const WIN_LABEL = ms => ms >= 3600000 ? (ms / 3600000) + ' 小时' : (ms / 60000) + ' 分钟';
+        // 右下角mini小图独立窗口设置，单击画布循环切换 3分 /30分 /1时；默认30分钟
+        const MINI_WIN_OPTIONS = [180000, 600000, 1800000, 3600000];
+        let miniWinMs = parseInt(localStorage.getItem('miniWinMs') || '1800000', 10);
+        if (!MINI_WIN_OPTIONS.includes(miniWinMs)) miniWinMs = 1800000;
+
+        /* ========== [4] 通用工具（DOM / 格式化 / 温度分档 / toast） ========== */
+        const $ = x => document.getElementById(x);
+        // 返回数字：用于绘图、坐标计算（canvas小图）
+        const pNum = v => Number((v / 255 * 100).toFixed(2));
+        // 返回格式化字符串：只用于UI显示文字
+        const pStr = v => (Number.isFinite(Number(v)) ? Math.floor(Number(v) / 255 * 100) + '%' : '--');
+        // 返回"原始PWM(百分比)"组合串: 风扇输出/监测/小图共用, 如 71(27%)
+        const pFull = v => (v == null || !Number.isFinite(Number(v)) ? '--' : Math.round(Number(v)) + '(' + pStr(v) + ')');
+
+        const n = v => v == null ? '--' : Math.round(v);
+        const hhmmss = t => new Date(t).toLocaleTimeString('zh-CN', { hour12: false });
+
+        function toast(x) {
+            $('toast').textContent = x;
+            $('toast').classList.add('on');
+            setTimeout(() => $('toast').classList.remove('on'), 2300)
+        }
+
+        /* ───────── 模式标题 ───────── */
+        function syncModeTop() {
+            const el = $('modeTop');
+            if (!D || !D.fan_control_enabled) { el.textContent = '监控'; el.className = ''; }
+            else if (D.manual_mode) { el.textContent = '强制'; el.className = 'mode-manual'; }
+            else { el.textContent = '自动'; el.className = 'mode-auto'; }
+            // 手动横幅: 页面任何模式下都提示当前被强制锁速
+            const forced = !!(D && D.fan_control_enabled && D.manual_mode);
+            $('modeBanner').classList.toggle('on', forced && viewMode !== 'manual');
+        }
+
+        /* ───────── 页面配置：转速 / PWM / 对比 / 手动 ───────── */
+        /* ========== [5] 图表配置（视图 / 序列 / 图例 / 时间窗口） ========== */
+        const VIEWS = {
+            rpm: {
+                title: '风扇状态 · RPM', left: 'rpm', right: 'cpu', ov: 'pwm',
+                desc: '历史窗口内 RPM 输出随时间的变化，细虚线为转速 PWM，右侧为 CPU 温度（横轴：时间），紫虚线为 PID 目标温度，竖虚线为事件标记。'
+            },
+            pwm: {
+                title: '风扇状态 · PWM', left: 'pwm', right: 'cpu', ov: 'rpm',
+                desc: '历史窗口内 PWM 输出随时间的变化，细虚线为转速 RPM，右侧为 CPU 温度（横轴：时间），紫虚线为 PID 目标温度，竖虚线为事件标记。'
+            }
+        };
+        const TABS = ['rpm', 'pwm', 'manual'];
+
+        const SERIES = {
+            rpm: {
+                name: 'RPM 转速', cap: 'RPM', cls: 'rpm', color: SERIES_COLORS.rpm, mark: 'now',
+                fmt: v => String(Math.round(v)),
+                range: vals => {
+                    let peak = 100;
+                    vals.forEach(v => { if (Number.isFinite(v)) peak = Math.max(peak, v) });
+                    return { lo: 0, hi: Math.max(400, Math.ceil(peak / 100) * 100), step: 100 };
+                }
+            },
+            pwm: {
+                name: 'PWM 输出', cap: 'PWM', cls: 'pwm', color: SERIES_COLORS.pwm, mark: 'nowp',
+                fmt: v => String(Math.round(v)),
+                range: () => ({ lo: 0, hi: 100, step: 25 })
+            },
+            cpu: {
+                name: 'CPU 温度', cap: 'CPU℃', cls: 'cpu', color: SERIES_COLORS.cpu, mark: 'nowc',
+                fmt: v => Math.round(v) + '℃',
+                range: vals => {
+                    const cs = vals.filter(Number.isFinite);
+                    if (!cs.length) return null;
+                    let lo = Math.max(40, Math.floor((Math.min(...cs) - 1) / 5) * 5);
+                    let hi = Math.ceil((Math.max(...cs) + 1) / 5) * 5;
+                    if (hi - lo < 15) hi = lo + 15;
+                    return { lo: lo, hi: hi, step: 5 };
+                }
+            }
+        };
+
+        /* 图例点击显隐的序列 key；target = PID 目标温度横虚线，默认不显示，点图例才画 */
+        const hiddenSeries = new Set(['target']);
+
+        function legendHTML(cfg) {
+            const item = (key, cls, dash, label) =>
+                `<span data-key="${key}" class="${cls}${hiddenSeries.has(key) ? ' off' : ''}" title="点击显示/隐藏该曲线">`
+                + `<i${dash ? ' class="dash"' : ''}></i>${label}</span>`;
+            const tgt = (D && D.run_mode === 'pid' && D.pid) ? Number(D.pid.target) : NaN;
+            return item(cfg.left, SERIES[cfg.left].cls, false, SERIES[cfg.left].name + '（左轴）')
+                + item(cfg.right, SERIES[cfg.right].cls, false, SERIES[cfg.right].name + '（右轴）')
+                + (cfg.ov ? item(cfg.ov, SERIES[cfg.ov].cls, true, SERIES[cfg.ov].name + '（虚线）') : '')
+                + item('target', 'target', true, '目标温度' + (Number.isFinite(tgt) ? ` ${tgt.toFixed(1)}℃` : ''))
+                + `<span class="note" id="chartNote">采样 2 秒 · 保留 ${WIN_LABEL(WINDOW_MS)}</span>`
+                + `<span class="stats" id="chartStats"></span>`
+                + `<span class="stats pidstat" id="pidStats"></span>`;
+        }
+
+        /* 图例点击显隐(事件委托), 只隐藏曲线不影响坐标轴 */
+        document.addEventListener('click', ev => {
+            const el = ev.target.closest('#legend span[data-key]');
+            if (!el) return;
+            const key = el.dataset.key;
+            hiddenSeries.has(key) ? hiddenSeries.delete(key) : hiddenSeries.add(key);
+            if (VIEWS[viewMode]) {
+                $('legend').innerHTML = legendHTML(VIEWS[viewMode]);
+                drawChart(viewMode);
+            }
+        });
+
+        /* 历史窗口切换(持久化到 localStorage) */
+        function setWin(ms) {
+            WINDOW_MS = ms;
+            try { localStorage.setItem('fanHist', String(ms)) } catch (e) { }
+            ['win-3m', 'win-10m', 'win-30m', 'win-1h'].forEach(id => {
+                const b = $(id);
+                if (!b) return;
+                const on = +ms === { 'win-3m': 180000, 'win-10m': 600000, 'win-30m': 1800000, 'win-1h': 3600000 }[id];
+                b.classList.toggle('on', on);
+                b.classList.toggle('inactive', !on);
+            });
+            if (VIEWS[viewMode]) {
+                const note = $('chartNote');
+                if (note) note.textContent = `采样 2 秒 · 保留 ${WIN_LABEL(ms)}`;
+                drawChart(viewMode);
+            }
+        }
+
+        /* ───────── 视图切换 ───────── */
+        function setView(view) {
+            viewMode = view;
+            TABS.forEach(k => {
+                const b = $('tab-' + k);
+                if (!b) return;
+                b.classList.toggle('on', k === view);
+                b.classList.toggle('inactive', k !== view);
+            });
+
+            const cfg = VIEWS[view];
+            const isManual = view === 'manual';
+            $('chartArea').style.display = isManual ? 'none' : 'block';
+            $('manualArea').classList.toggle('show', isManual);
+
+            if (cfg) {
+                $('chartTitle').textContent = cfg.title;
+                $('chartDesc').textContent = cfg.desc;
+                $('legend').innerHTML = legendHTML(cfg);
+                drawChart(view);
+            } else {
+                $('chartTitle').textContent = '手动 · 强制转速';
+                $('chartDesc').textContent = '拖动滑块强制指定风扇输出，直接写入 PWM（仅此页会控制风扇）。';
+                mTouched = false;
+                syncManual();
+            }
+            /* 强制状态跨页面保持, 仅“恢复自动温控”按钮会退出强制;
+               切到 RPM/PWM 监控页可继续观察, 右上角如实显示“强制” */
+            syncModeTop();
+        }
+
+        /* Catmull-Rom → 三次贝塞尔，抑制锯齿抖动 */
+        function smoothPath(arr) {
+            if (!arr.length) return '';
+            if (arr.length < 3) return arr.map((a, i) => (i ? 'L' : 'M') + a[0].toFixed(1) + ',' + a[1].toFixed(1)).join(' ');
+            const f = n => n.toFixed(1);
+            let d = `M${f(arr[0][0])},${f(arr[0][1])}`;
+            for (let i = 0; i < arr.length - 1; i++) {
+                const p0 = arr[i - 1] || arr[i], p1 = arr[i], p2 = arr[i + 1], p3 = arr[i + 2] || p2;
+                const t = 1 / 6;
+                const c1x = p1[0] + (p2[0] - p0[0]) * t, c1y = p1[1] + (p2[1] - p0[1]) * t;
+                const c2x = p2[0] - (p3[0] - p1[0]) * t, c2y = p2[1] - (p3[1] - p1[1]) * t;
+                d += `C${f(c1x)},${f(c1y)} ${f(c2x)},${f(c2y)} ${f(p2[0])},${f(p2[1])}`;
+            }
+            return d;
+        }
+
+        /**
+        * 自学习计算风扇 pwm→rpm 单位系数fanK
+        * 使用硬件实际回读pwm + 稳定后的rpm；过滤瞬态、停转、过低pwm
+        */
+        /* ========== [6] 曲线数据计算（fanK 自学习 / 互相关滞后） ========== */
+        function recalcFanK(win) {
+            const samples = [];
+            const MIN_VALID_PWM = 12;
+            const MAX_PWM_DELTA = 18;
+            const MIN_LEARN_SAMPLE = 8;
+
+            for (let i = 1; i < win.length; i++) {
+                const prev = win[i - 1];
+                const cur = win[i];
+                const p = cur.pwm;
+                const r = cur.rpm;
+
+                if (!Number.isFinite(p) || !Number.isFinite(r)) continue;
+                if (p < MIN_VALID_PWM) continue;
+                if (r <= 100) continue;
+
+                const deltaPwm = Math.abs(cur.pwm - prev.pwm);
+                if (deltaPwm > MAX_PWM_DELTA) continue;
+
+                const deltaRpm = Math.abs(cur.rpm - prev.rpm);
+                const rpmRelDelta = deltaRpm / cur.rpm;
+                if (rpmRelDelta > 0.08) continue;
+
+                const k = r / p;
+                if (k >= 4.5 && k <= 8.5) {
+                    samples.push(k);
+                }
+            }
+
+            console.debug("[recalcFanK] totalWinPoints:", win.length, "validSamples:", samples.length, "needMin:", MIN_LEARN_SAMPLE);
+
+            if (samples.length >= MIN_LEARN_SAMPLE) {
+                samples.sort((a, b) => a - b);
+                const midIdx = Math.floor(samples.length / 2);
+                fanK = samples[midIdx];
+                console.debug("[recalcFanK] update fanK =", fanK, "medianIdx:", midIdx);
+                // 更新页面显示，保留4位小数
+                const el = document.getElementById("fank-value");
+                if (el) el.textContent = fanK.toFixed(4);
+            } else {
+                console.debug("[recalcFanK] not enough samples, keep old fanK =", fanK);
+            }
+        }
+        // ===== 全局顶层：互相关计算函数（只在页面加载执行1次） =====
+        /** PWM→RPM互相关计算，返回滞后字符串，无有效返回空 */
+        function calcPwmRpmLag(winData) {
+            const rr = winData.filter(d => Number.isFinite(d.pwm) && Number.isFinite(d.rpm));
+            const dPwm = [], dRpm = [];
+            for (let i = 1; i < rr.length; i++) {
+                dPwm.push(rr[i].pwm - rr[i - 1].pwm);
+                dRpm.push(rr[i].rpm - rr[i - 1].rpm);
+            }
+            let maxCorr = 0;
+            let bestK = -1;
+            const MAX_SEARCH_STEP = 30;
+            for (let k = 0; k <= Math.min(MAX_SEARCH_STEP, dPwm.length - 2); k++) {
+                let s = 0, aa = 0, bb = 0, n = 0;
+                for (let i = 0; i + k < dPwm.length; i++) {
+                    s += dPwm[i] * dRpm[i + k];
+                    aa += dPwm[i] * dPwm[i];
+                    bb += dRpm[i + k] * dRpm[i + k];
+                    n++;
+                }
+                if (n >= 5 && aa > 1e-9 && bb > 1e-9) {
+                    const c = s / Math.sqrt(aa * bb);
+                    if (c > maxCorr) {
+                        maxCorr = c;
+                        bestK = k;
+                    }
+                }
+            }
+            return maxCorr > 0.25 ? (bestK * 2) + 's' : '';
+        }
+
+        /** CPU→PWM互相关计算，返回滞后字符串，无有效返回空 */
+        function calcCpuPwmLag(winData) {
+            const pw = winData.filter(d => Number.isFinite(d.cpu) && Number.isFinite(pNum(d.pwm)));
+            const dts = [], dps = [];
+            for (let i = 1; i < pw.length; i++) {
+                dts.push(pw[i].cpu - pw[i - 1].cpu);
+                dps.push(pNum(pw[i].pwm) - pNum(pw[i - 1].pwm));
+            }
+            let maxCorr = 0;
+            let bestK = -1;
+            const MAX_PID_SEARCH_STEP = 30;
+            for (let k = 0; k <= Math.min(MAX_PID_SEARCH_STEP, dts.length - 2); k++) {
+                let s = 0, aa = 0, bb = 0, n = 0;
+                for (let i = 0; i + k < dts.length; i++) {
+                    s += dts[i] * dps[i + k];
+                    aa += dts[i] * dts[i];
+                    bb += dps[i + k] * dps[i + k];
+                    n++;
+                }
+                if (n >= 5 && aa > 1e-9 && bb > 1e-9) {
+                    const c = s / Math.sqrt(aa * bb);
+                    if (c > maxCorr) {
+                        maxCorr = c;
+                        bestK = k;
+                    }
+                }
+            }
+            return maxCorr > 0.25 ? (bestK * 2) + 's' : '';
+        }
+        // =========================================================
+
+        /* ===== [7] 主曲线：量程 / 坐标 / 图层 ===== */
+
+        /* 左轴 RPM 动态量程（150 一档，最低 600）；PWM 与 RPM 共用同一套归一；右轴 CPU 5℃ 一档 */
+        function chartScales(win) {
+            let rpmMax = 0;
+            win.forEach(d => { if (Number.isFinite(d.rpm)) rpmMax = Math.max(rpmMax, d.rpm); });
+            /* 向上按 150 取整： pwmVal/255*1600 = eqRpm, eqRpm/rpmFull 归一 */
+            const full = Math.ceil(Math.max(rpmMax, 600) / 150) * 150;
+            const ls = { lo: 0, hi: 1, step: 150 / full };
+
+            const cpuVals = win.map(d => d.cpu).filter(Number.isFinite);
+            let rs = null;
+            if (cpuVals.length) {
+                const maxCpu = Math.max(...cpuVals);
+                const minCpu = Math.min(...cpuVals);
+                let rHi = Math.ceil((maxCpu + 5) / 5) * 5;
+                let rLo;
+                if (D && D.run_mode === 'pid' && D.pid && Number.isFinite(D.pid.target)) {
+                    /* PID 模式：下限取 min(目标-5, 窗口最小-5)，保底 35℃ */
+                    rLo = Math.floor(Math.min(Number(D.pid.target) - 5, minCpu - 5) / 5) * 5;
+                } else {
+                    /* 曲线/线性：窗口最小向下 5 取整，保底 35℃ */
+                    rLo = Math.floor(minCpu / 5) * 5;
+                }
+                rLo = Math.max(35, rLo);
+                if (rHi - rLo < 15) rHi = rLo + 15;      /* 轴高至少 15℃，防止区间过窄 */
+                rs = { lo: rLo, hi: rHi, step: 5 };
+            }
+            return { full, ls, rs };
+        }
+
+        const chartTicks = sc => {
+            const arr = [];
+            for (let v = sc.lo; v <= sc.hi + 1e-6; v += sc.step) arr.push(v);
+            return arr;
+        };
+
+        /* 归一值：rpm → rpm/full；pwm → 等效 RPM/full；cpu → 原始温度（走右轴） */
+        const chartNorm = (d, key, full) => key === 'rpm'
+            ? d.rpm / full
+            : key === 'pwm' ? (d.pwm * 1600 / 255) / full
+                : key === 'cpu' ? d.cpu : null;
+
+        /* 归一值 0-1 → 画布 Y 像素 */
+        const chartY = (sc, v, yBot, band) =>
+            yBot - (Math.min(Math.max(v, sc.lo), sc.hi) - sc.lo) / (sc.hi - sc.lo) * band;
+
+        /* 左轴刻度文本：RPM 视图给真实 RPM，PWM 视图给同一像素对应的 PWM */
+        const chartAxisText = (normVal, view, full) => view === 'rpm'
+            ? Math.round(normVal * full)
+            : Math.round(normVal * full / 1600 * 255);
+
+        /* 网格 + 警戒/目标/均值参考线 + 轴刻度文本；返回 { html, spMark }（spMark 叠在曲线之上） */
+        function chartGridHtml(p) {
+            const { x0, x1, yTop, yBot, band, ls, rs, L, R, view, full, xTicks, win } = p;
+            let g = '';
+            let spMark = '';
+
+            if (rs) {
+                /* CPU 网格：强制 5℃ 间隔 */
+                for (let t = rs.lo; t <= rs.hi; t += 5) {
+                    const y = chartY(rs, t, yBot, band);
+                    g += `<line class="gt" x1="${x0.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" />`;
+                }
+                /* 警戒线：65℃ 主题琥珀 / 70℃ 紧急亮橙黄 */
+                [
+                    [65, 'var(--amber)', '警戒'],
+                    [70, '#ffaa00', '紧急']
+                ].forEach(([tv, col, tag]) => {
+                    if (tv < rs.lo || tv > rs.hi) return;
+                    const y = chartY(rs, tv, yBot, band);
+                    g += `<line x1="${x0.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"`
+                        + ` stroke="${col}" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.85">`
+                        + `<title>${tag}线 ${tv}℃</title></line>`
+                        + `<text x="${(x1 - 4).toFixed(1)}" y="${(y - 4).toFixed(1)}" fill="${col}" font-size="10" font-weight="bold" text-anchor="end" opacity="0.9">${tv}℃</text>`;
+                });
+
+                /* PID 目标温度紫虚线：由图例「目标温度」开关控制，默认不显示；仅 PID 模式有设定值 */
+                const spT = (D && D.run_mode === 'pid' && D.pid) ? Number(D.pid.target) : NaN;
+                if (Number.isFinite(spT) && spT > 0 && !hiddenSeries.has('target')) {
+                    const spOut = spT < rs.lo || spT > rs.hi;   /* 超出量程时钉在边缘，不做假刻度 */
+                    const ySp = chartY(rs, spT, yBot, band);     /* chartY 内部已钳到 [yTop,yBot] */
+                    const tySp = Math.max(yTop + 11, Math.min(yBot - 3, ySp - 5));
+                    g += `<line x1="${x0.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${ySp.toFixed(1)}" y2="${ySp.toFixed(1)}"`
+                        + ` stroke="var(--target)" stroke-width="1.6" stroke-dasharray="8 4" opacity="0.95">`
+                        + `<title>PID 目标温度 ${spT.toFixed(1)}℃${spOut ? '（超出当前量程）' : ''}</title></line>`;
+                    /* 文字描边做底衬，压住曲线也能读清 */
+                    spMark = `<text x="${(x0 + 6).toFixed(1)}" y="${tySp.toFixed(1)}" fill="var(--target)"`
+                        + ` stroke="var(--p)" stroke-width="2.6" paint-order="stroke" font-size="10" font-weight="bold"`
+                        + ` text-anchor="start">目标 ${spT.toFixed(1)}℃</text>`;
+                }
+
+                /* 窗口平均值 ±δ 红色虚线 */
+                const cpuWinVals = win.map(d => d.cpu).filter(Number.isFinite);
+                if (cpuWinVals.length >= 5) {
+                    const count = cpuWinVals.length;
+                    const avgCpu = cpuWinVals.reduce((s, v) => s + v, 0) / count;
+                    const sigma = Math.sqrt(cpuWinVals.reduce((sum, v) => sum + (v - avgCpu) ** 2, 0) / count);
+                    [
+                        [avgCpu + sigma, `avg+δ ${avgCpu.toFixed(2)} + ${sigma.toFixed(2)} = ${(avgCpu + sigma).toFixed(2)}℃`],
+                        [avgCpu - sigma, `avg‑δ ${avgCpu.toFixed(2)} − ${sigma.toFixed(2)} = ${(avgCpu - sigma).toFixed(2)}℃`]
+                    ].forEach(([tv, tipText]) => {
+                        /* 超出轴范围就钉在画布上下边缘，保证线不会消失 */
+                        const y = Math.max(yTop, Math.min(yBot, chartY(rs, tv, yBot, band)));
+                        g += `<line x1="${x0.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#ff0000" stroke-width="1.1" stroke-dasharray="4 4" opacity="0.65">`
+                            + `<title>${tipText}</title></line>`;
+                    });
+                }
+            }
+
+            /* 左轴网格线与刻度文本（画布矮时隔行渲染，避免文字挤压） */
+            const lTicks = chartTicks(ls);
+            const labelSkip = band > 220 ? 1 : 2;
+            lTicks.forEach(v => {
+                const y = chartY(ls, v, yBot, band);
+                g += `<line class="g" x1="${x0.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" />`;
+            });
+            lTicks.forEach((v, i) => {
+                if (i % labelSkip !== 0) return;
+                g += `<text class="axis" x="${(x0 - 8).toFixed(1)}" y="${(chartY(ls, v, yBot, band) + 3.5).toFixed(1)}" text-anchor="end">${chartAxisText(v, view, full)}</text>`;
+            });
+
+            /* 右轴 5℃ 刻度文本 */
+            if (rs) {
+                const rTicks = chartTicks(rs);
+                rTicks.forEach((v, i) => {
+                    if (i % labelSkip !== 0) return;
+                    g += `<text class="axis" x="${(x1 + 8).toFixed(1)}" y="${(chartY(rs, v, yBot, band) + 3.5).toFixed(1)}" text-anchor="start">${R.fmt(v)}</text>`;
+                });
+            }
+
+            g += `<line class="gx" x1="${x0.toFixed(1)}" x2="${x0.toFixed(1)}" y1="${yTop}" y2="${yBot}" />`;
+            g += `<line class="gx" x1="${x1.toFixed(1)}" x2="${x1.toFixed(1)}" y1="${yTop}" y2="${yBot}" />`;
+            xTicks.forEach(t => {
+                g += `<line class="gx" x1="${t.x.toFixed(1)}" x2="${t.x.toFixed(1)}" y1="${yTop}" y2="${yBot}" />`;
+                g += `<text class="axis" x="${t.x.toFixed(1)}" y="${(yBot + 17).toFixed(1)}" text-anchor="middle">${t.label}</text>`;
+            });
+            g += `<text class="cap" x="${(x0 - 16).toFixed(1)}" y="${(yBot + 42).toFixed(1)}" fill="${L.color}" text-anchor="start">${L.cap}</text>`;
+            if (rs) g += `<text class="cap" x="${(x1 + 16).toFixed(1)}" y="${(yBot + 42).toFixed(1)}" fill="${R.color}" text-anchor="end">${R.cap}</text>`;
+
+            return { g, spMark };
+        }
+
+        /* 曲线本体：对比虚线 + 主/右轴曲线 + 端点圆点 + 事件竖线 + 峰值标注 */
+        function chartBodyHtml(p) {
+            const { win, cfg, L, R, O, rs, lPts, oPts, rPts, xAt, yL, yR, x0, x1, yTop, yBot, tMin, now, full } = p;
+            const dots = (arr, cls) => (x1 - x0) / arr.length < 4 ? ''
+                : arr.map(a => `<circle class="dot-${cls}" cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="1.9" />`).join('');
+            const head = (arr, cls) => arr.length
+                ? `<circle class="${cls}" cx="${arr[arr.length - 1][0].toFixed(1)}" cy="${arr[arr.length - 1][1].toFixed(1)}" r="5" />` : '';
+
+            let body = '';
+            if (O && !hiddenSeries.has(cfg.ov) && oPts.length > 1)
+                body += `<path class="ov" d="${smoothPath(oPts)}" stroke="${O.color}" />`;
+            if (!hiddenSeries.has(cfg.left) && lPts.length > 1)
+                body += `<path class="line-${L.cls}" d="${smoothPath(lPts)}" />` + dots(lPts, L.cls);
+            if (!hiddenSeries.has(cfg.right) && rPts.length > 1)
+                body += `<path class="line-${R.cls}" d="${smoothPath(rPts)}" />` + dots(rPts, R.cls);
+            if (!hiddenSeries.has(cfg.left)) body += head(lPts, L.mark);
+            if (!hiddenSeries.has(cfg.right)) body += head(rPts, R.mark);
+
+            /* 事件时间轴竖线：warning/critical/info 分色，悬停看完整文本 */
+            if (D && Array.isArray(D.events)) {
+                const evCol = { info: 'var(--txt3)', warning: 'var(--amber)', critical: 'var(--red)' };
+                D.events.filter(e => Number.isFinite(e.ts) && e.ts * 1000 >= tMin && e.ts * 1000 <= now)
+                    .slice(0, 12)
+                    .forEach(e => {
+                        const x = xAt({ ts: e.ts * 1000 });
+                        body += `<line x1="${x.toFixed(1)}" y1="${yTop}" x2="${x.toFixed(1)}" y2="${yBot}"`
+                            + ` stroke="${evCol[e.level] || evCol.info}" stroke-width="1" stroke-dasharray="3 4" opacity=".45">`
+                            + `<title>${hhmmss(e.ts * 1000)} ${String(e.text || '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</title></line>`;
+                    });
+            }
+
+            /* 峰值标注：圆圈 + 数值，负载尖峰一眼定位 */
+            if (rPts.length > 10) {
+                let mi = 0;
+                rPts.forEach((pt, i) => { if (pt[1] < rPts[mi][1]) mi = i; });
+                const cpuPeak = win[mi];
+                body += `<circle cx="${rPts[mi][0].toFixed(1)}" cy="${rPts[mi][1].toFixed(1)}" r="6.5" fill="none" stroke="${R.color}" stroke-width="1.2" opacity=".85" />`
+                    + `<text x="${rPts[mi][0].toFixed(1)}" y="${(rPts[mi][1] - 11).toFixed(1)}" fill="${R.color}" font-size="11" font-weight="700" text-anchor="middle">${R.fmt(chartNorm(cpuPeak, cfg.right, full))}</text>`;
+
+                /* 左轴峰值：reduceRight 从尾部向前，取最大值（相同值保留时间更新的） */
+                const key = viewMode === 'rpm' ? 'rpm' : viewMode === 'pwm' ? 'pwm' : null;
+                if (key) {
+                    const peakPt = win.reduceRight((acc, cur) => {
+                        if (!Number.isFinite(cur[key])) return acc;
+                        if (acc === null) return cur;
+                        return cur[key] > acc[key] ? cur : acc;
+                    }, null);
+                    if (peakPt) {
+                        const peakX = xAt(peakPt);
+                        const peakY = yL(chartNorm(peakPt, key, full));
+                        body += `<circle cx="${peakX.toFixed(1)}" cy="${peakY.toFixed(1)}" r="6.5" fill="none" stroke="${L.color}" stroke-width="1.2" />`
+                            + `<text x="${peakX.toFixed(1)}" y="${(peakY - 11).toFixed(1)}" fill="${L.color}" font-size="11" font-weight="700" text-anchor="middle">${Math.round(peakPt[key])}</text>`;
+                    }
+                }
+            }
+            return body;
+        }
+
+        /* 统计行：min / max / 峰峰 / avg / δ（max 按温度分档着色）+ PWM→RPM 滞后 */
+        function chartStatsBar(win, cfg, L, R) {
+            const stEl = $('chartStats');
+            if (!stEl) return;
+            const rpmLagTxt = calcPwmRpmLag(win);
+            const stat = key => {
+                const rawVals = win.filter(d => Number.isFinite(d[key])).map(d => d[key]);
+                if (!rawVals.length) return 'min -- / max -- / p-p -- / avg -- / δ --';
+                const S = SERIES[key];
+                const mean = rawVals.reduce((a, b) => a + b, 0) / rawVals.length;
+                const variance = rawVals.reduce((a, b) => a + (b - mean) ** 2, 0) / rawVals.length;
+                const vmax = Math.max(...rawVals), vmin = Math.min(...rawVals);
+                const maxHtml = key === 'cpu' ? `<span class="${tempClass(vmax)}">${S.fmt(vmax)}</span>` : S.fmt(vmax);
+                let outStr = `min ${S.fmt(vmin)} / max ${maxHtml}`
+                    + ` / 峰峰 ${S.fmt(vmax - vmin)} / avg ${mean.toFixed(2)}`
+                    + ` / δ ${Math.sqrt(variance).toFixed(2)}`;
+                if ((key === 'rpm' || key === 'pwm') && rpmLagTxt) outStr += ` / PWM→RPM滞后 ${rpmLagTxt}`;
+                return outStr;
+            };
+            stEl.innerHTML = `${L.cap} ${stat(cfg.left)} · ${R.cap} ${stat(cfg.right)}`;
+        }
+
+        /* PID 控制品质指标行：偏差 / MAE / IAE / ISE / ITAE / 动作次数 / 响应滞后 */
+        function chartPidBar(win) {
+            const pidEl = $('pidStats');
+            if (!pidEl) return;
+            const sp = (D && D.run_mode === 'pid' && D.pid) ? +D.pid.target : NaN;
+            const ps = win.filter(d => Number.isFinite(d.cpu));
+            if (!Number.isFinite(sp) || sp <= 0 || ps.length < 3) {
+                pidEl.textContent = D && D.run_mode === 'pid' ? 'PID 指标: 采样点不足' : '';
+                return;
+            }
+            let iae = 0, ise = 0, itae = 0, sumAbs = 0, maxDev = 0, sumPv = 0;
+            const t0 = ps[0].ts;
+            ps.forEach((d, i) => {
+                const e = d.cpu - sp, ae = Math.abs(e);
+                const dt = i ? Math.max(0, d.ts - ps[i - 1].ts) / 1000 : 0;
+                iae += ae * dt;
+                ise += e * e * dt;
+                itae += (d.ts - t0) / 1000 * ae * dt;
+                sumAbs += ae;
+                sumPv += d.cpu;
+                if (ae > maxDev) maxDev = ae;
+            });
+            const mae = sumAbs / ps.length;
+            const cur = ps[ps.length - 1].cpu - sp;
+            const steady = Math.abs(sumPv / ps.length - sp);
+            let acts = 0;
+            for (let i = 1; i < win.length; i++) if (pNum(win[i].pwm) !== pNum(win[i - 1].pwm)) acts++;
+
+            const lagTxt = calcCpuPwmLag(win);
+            const kfmt = v => v >= 1e6 ? (v / 1e6).toFixed(1) + 'M'
+                : v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v.toFixed(0);
+            const sgn = v => (v >= 0 ? '+' : '') + v.toFixed(1);
+
+            let pidLine = `PID 设定 ${sp}℃ · 当前偏差 ${sgn(cur)}℃ · 稳态偏差 ${steady.toFixed(1)}℃`
+                + ` · MAE ${mae.toFixed(1)}℃ · 最大偏差 ${maxDev.toFixed(1)}℃`
+                + ` · IAE ${kfmt(iae)} · ISE ${kfmt(ise)} · ITAE ${kfmt(itae)}`
+                + ` · PWM 动作 ${acts} 次`;
+            if (lagTxt) pidLine += ` · 响应滞后 ${lagTxt}`;
+            pidEl.style.color = getComputedStyle(document.body).getPropertyValue('--txt2');
+            pidEl.textContent = pidLine;
+        }
+
+        /* 悬停十字线 + 数值气泡（一次性绑定，渲染用的 g/body 由调用方传入） */
+        function bindChartHover(svg, ctx) {
+            const { win, cfg, L, R, O, rs, x0, x1, yTop, xAt, tMin, yL, yR, full, layers } = ctx;
+            const tip = $('tip');
+            const dotSvg = (cx, cy, color) =>
+                `<circle class="cvdot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${color}" />`;
+
+            svg.onmousemove = ev => {
+                const rect = svg.getBoundingClientRect();
+                const mx = ev.clientX - rect.left;
+                if (mx < x0 || mx > x1) { tip.style.opacity = 0; return; }
+                const ts = tMin + (mx - x0) / (x1 - x0) * WINDOW_MS;
+                let best = null, bd = Infinity;
+                win.forEach(d => { const dt = Math.abs(d.ts - ts); if (dt < bd) { bd = dt; best = d; } });
+                if (!best) { tip.style.opacity = 0; return; }
+
+                const px = xAt(best);
+                const nvL = chartNorm(best, cfg.left, full);
+                const nvO = cfg.ov ? chartNorm(best, cfg.ov, full) : null;
+                const nvR = rs ? chartNorm(best, cfg.right, full) : null;
+                const ylv = Number.isFinite(nvL) ? yL(nvL) : null;
+                const yov = O && Number.isFinite(nvO) ? yL(nvO) : null;
+                const yrv = rs && Number.isFinite(nvR) ? yR(nvR) : null;
+
+                let hover = `<line class="cross" x1="${px.toFixed(1)}" x2="${px.toFixed(1)}" y1="${yTop}" y2="${layers.yBot}" />`;
+                if (ylv != null) hover += dotSvg(px, ylv, L.color);
+                if (yov != null) hover += dotSvg(px, yov, O.color);
+                if (yrv != null) hover += dotSvg(px, yrv, R.color);
+                svg.innerHTML = layers.g + layers.body + hover + layers.spMark;
+
+                const yMin = Math.min(...[ylv, yov, yrv].filter(v => v != null));
+                tip.style.opacity = 1;
+                tip.style.left = (12 + px) + 'px';
+                tip.style.top = (12 + Math.max(yMin, yTop)) + 'px';
+
+                const dispLeft = (key, d) => key === 'rpm'
+                    ? `${d.rpm} RPM`
+                    : `${pStr(d.pwm)}(${d.pwm}) 等效 ${Math.round(d.pwm * fanK)} RPM`;
+                tip.innerHTML = hhmmss(best.ts) + '<br>'
+                    + `${L.name}: ${dispLeft(cfg.left, best)}`
+                    + (rs ? `<br>${R.name}: <span class="${tempClass(best.cpu)}">${R.fmt(best.cpu)}</span>` : '')
+                    + (O ? `<br>${O.name}: ${dispLeft(cfg.ov, best)}` : '');
+            };
+            svg.onmouseleave = () => {
+                tip.style.opacity = 0;
+                svg.innerHTML = layers.g + layers.body + layers.spMark;
+            };
+        }
+
+        /* 主曲线入口：算几何与量程 → 各图层拼装 → 绑定悬停 */
+        function drawChart(view) {
+            /* 手动视图没有主曲线，未知视图同样直接返回（按入参判断，不依赖全局 viewMode） */
+            if (view === 'manual' || !VIEWS[view]) return;
+            const cfg = VIEWS[view];
+            const svg = $('chart');
+            if (!svg) return;
+
+            const box = svg.getBoundingClientRect();
+            const W = box.width, H = box.height;
+            svg.setAttribute('viewBox', `0 0 ${W.toFixed(1)} ${H.toFixed(1)}`);
+            if (W < 80 || H < 80) return;
+
+            const L = SERIES[cfg.left], R = SERIES[cfg.right], O = cfg.ov ? SERIES[cfg.ov] : null;
+            const x0 = 48, x1 = W - 56, yTop = 18, yBot = H - 50;
+            const band = yBot - yTop;
+
+            const now = Date.now();
+            const win = monitorData.filter(d => d.ts >= now - WINDOW_MS);
+            if (win.length < 1) {
+                svg.innerHTML = `<text class="axis" x="${(W / 2).toFixed(1)}" y="${(H / 2).toFixed(1)}" text-anchor="middle">正在采集数据 · ${WIN_LABEL(WINDOW_MS)}后可见完整曲线</text>`;
+                return;
+            }
+
+            recalcFanK(win);   /* 每帧顺带更新自学习系数 fanK */
+
+            const { full, ls, rs } = chartScales(win);
+            const yL = v => chartY(ls, v, yBot, band);
+            const yR = v => rs ? chartY(rs, v, yBot, band) : 0;
+
+            const tMin = now - WINDOW_MS;
+            const xAt = d => x0 + Math.min(Math.max(d.ts - tMin, 0), WINDOW_MS) / WINDOW_MS * (x1 - x0);
+            const xTicks = [0, 1, 2, 3].map(i => ({ x: x0 + i / 3 * (x1 - x0), label: hhmmss(tMin + i * WINDOW_MS / 3) }));
+
+            /* 采样点：统一归一化到 0-1，CPU 返回原始温度给右轴 */
+            const pts = (key, yFn) => win
+                .filter(d => Number.isFinite(chartNorm(d, key, full)))
+                .map(d => [xAt(d), yFn(chartNorm(d, key, full))]);
+            const lPts = pts(cfg.left, yL);
+            const oPts = cfg.ov ? pts(cfg.ov, yL) : [];
+            const rPts = rs ? pts(cfg.right, yR) : [];
+
+            chartStatsBar(win, cfg, L, R);
+            chartPidBar(win);
+
+            const { g, spMark } = chartGridHtml({ x0, x1, yTop, yBot, band, ls, rs, L, R, view, full, xTicks, win });
+            const body = chartBodyHtml({ win, cfg, L, R, O, rs, lPts, oPts, rPts, xAt, yL, yR, x0, x1, yTop, yBot, tMin, now, full });
+            svg.innerHTML = g + body + spMark;
+
+            bindChartHover(svg, { win, cfg, L, R, O, rs, x0, x1, yTop, xAt, tMin, yL, yR, full, layers: { g, body, spMark, yBot } });
+
+            const note = $('chartNote');
+            if (note) note.textContent = `采样 2 秒 · ${win.length} 个点 · 保留 ${WIN_LABEL(WINDOW_MS)}`;
+        }
+
+        /* 用后端 2 秒日志回填曲线（保留全部缓冲, 按当前窗口过滤显示） */
+        function seedFromLog(list) {
+            if (!Array.isArray(list) || !list.length) return;
+
+            // ✅ 明确单位：ts 来自后端，单位为秒
+            const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+            const now = Date.now();
+            const cut = now - TWO_HOURS_MS;
+
+            const near = ts => monitorData.some(d => Math.abs(d.ts - ts) < 1500);
+            list.forEach(e => {
+                if (!Number.isFinite(e.ts)) return;
+                const ts = e.ts * 1000; // 秒 → 毫秒
+                if (ts < cut || ts > now + 2000) return;
+                if (!Number.isFinite(e.rpm) && !Number.isFinite(e.pwm)) return;
+                if (near(ts)) return;
+                monitorData.push({
+                    ts,
+                    rpm: e.rpm,
+                    pwm: e.pwm,
+                    tgt: e.tgt,
+                    avg: e.avg,
+                    cpu: e.cpu
+                });
+            });
+
+            monitorData.sort((a, b) => a.ts - b.ts);
+            if (viewMode !== 'manual') drawChart(viewMode);
+        }
+
+        /* ========== [8] 手动强制 PWM ========== */
+        /* ───────── 手动：强制指定转速 ───────── */
+        /* 滑块进度填充量（--fill）：让蓝色已完成段跟随当前 PWM */
+        function mSyncFill() {
+            const s = $('mSlide');
+            if (!s) return;
+            const min = Number(s.min) || 0, max = Number(s.max) || 255;
+            const v = Math.min(Math.max(Number(s.value) || 0, min), max);
+            const pct = max > min ? (v - min) / (max - min) * 100 : 0;
+            s.style.setProperty('--fill', pct.toFixed(2) + '%');
+        }
+
+        function syncManual() {
+            if (!mTouched) {
+                const s = $('mSlide');
+                const min = Number(s.min) || 16, max = Number(s.max) || 255;
+                const base = D ? (D.manual_pwm || 65) : 65;
+                mp = Math.max(min, Math.min(max, Math.round(base)));   // 低于 16 会堵转, 一律抬到下限
+                // step=1，滑块可以精确定位到任意 PWM 值
+                s.value = mp;
+            }
+            mSyncFill();
+            $('mVal').textContent = mp;
+            const eqRpm = Math.round(mp * fanK);
+            $('mInfo').textContent = `等效 ${eqRpm} RPM`;
+
+            const forced = !!(D && D.fan_control_enabled && D.manual_mode);
+            const chip = $('mState');
+            chip.textContent = forced ? '强制中' : '未启用';
+            chip.classList.toggle('on', forced);
+            $('mRpm').textContent = n(D?.fan_rpm) + ' RPM';
+            const realPwm = D?.pwm ?? 0;
+            $('mPwm').textContent = `${realPwm}`;
+
+            if (forced) {
+                $('btnForce').classList.add('btn-active');
+            } else {
+                $('btnForce').classList.remove('btn-active');
+            }
+        }
+
+        /**
+         * PWM单步微调 ±1原始PWM
+         * delta = +1 / -1；下限锁在滑块 min(16)，写 15 会被硬件百分比取整降到 12 而堵转
+         */
+        function pwmStep(delta) {
+            const s = $('mSlide');
+            const min = Number(s.min) || 16, max = Number(s.max) || 255;
+            mp = Math.max(min, Math.min(max, mp + delta));
+            mTouched = true;
+
+            // step=1，滑块与 mp 一一对应
+            s.value = mp;
+            mSyncFill();
+
+            $('mVal').textContent = mp;
+            const eqRpm = Math.round(mp * fanK);
+            $('mInfo').textContent = `等效 ${eqRpm} RPM`;
+
+            clearTimeout(forceTimer);
+            forceTimer = setTimeout(() => forceSpeed(true), 450);
+        }
+
+        // mPreset 传入原始 PWM(16/51/102/153/204/255); 滑块 step=1, 可精确落位, 无需吸附
+        function mPreset(targetPwm) {
+            const s = $('mSlide');
+            const min = Number(s.min) || 16, max = Number(s.max) || 255;
+            mp = Math.max(min, Math.min(max, Number(targetPwm) || 0));
+            mTouched = true;
+
+            s.value = mp;
+            mSyncFill();
+
+            $('mVal').textContent = mp;
+            $('mInfo').textContent = `等效 ${Math.round(mp * fanK)} RPM`;
+
+            clearTimeout(forceTimer);
+            forceTimer = setTimeout(() => forceSpeed(true), 450);
+        }
+
+        // 拖动滑块：按 5 级粗调（16 起每 5 一格）；单步按钮与预设仍是 1 级精调
+        function mChange() {
+            const s = $('mSlide');
+            const min = Number(s.min) || 16, max = Number(s.max) || 255;
+            const raw = Math.max(min, Math.min(max, Number(s.value) || min));
+            mp = Math.max(min, Math.min(max, min + Math.round((raw - min) / 5) * 5));
+            s.value = mp;                 // 让滑块视觉上也落在 5 的网格上
+            mTouched = true;
+            mSyncFill();
+            $('mVal').textContent = mp;
+            const eqRpm = Math.round(mp * fanK);
+            $('mInfo').textContent = `等效 ${eqRpm} RPM`;
+            clearTimeout(forceTimer);
+            forceTimer = setTimeout(() => forceSpeed(true), 450);
+        }
+
+        function restoreAuto() {
+            fetch(apiUrl('/api/curve'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ manual_mode: false, fan_control_enabled: true })
+            }).then(r => r.json()).then(() => {
+                mTouched = false;
+                if (D) { D.manual_mode = false; D.fan_control_enabled = true; }
+                syncManual();
+                syncModeTop();
+
+                // ✅恢复自动，移除强制按钮深蓝色激活状态，清除焦点
+                $('btnForce').classList.remove('btn-active');
+                $('btnForce').blur();
+                $('btnAuto').blur();
+
+                toast('已恢复自动温控');
+                get();
+            }).catch(() => {
+                toast('切换失败');
+                $('btnForce').blur();
+            });
+        }
+
+        function forceSpeed(silent) {
+            mTouched = true;
+            // mp现在就是原始PWM(0‑255)，直接上传
+            const raw = Math.max(0, Math.min(255, mp));
+            fetch(apiUrl('/api/curve'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ manual_mode: true, manual_pwm: raw, fan_control_enabled: true })
+            }).then(r => r.json()).then(x => {
+                if (!x.ok) throw 0;
+                if (D) { D.manual_mode = true; D.fan_control_enabled = true; }
+                syncManual();
+                syncModeTop();
+
+                // ✅强制模式，添加激活样式；清除按钮焦点，防止粘住颜色
+                $('btnForce').classList.add('btn-active');
+                $('btnForce').blur();
+                $('btnAuto').blur();
+
+                if (!silent) toast(`已强制 PWM ${raw}`);
+                get();
+            }).catch(() => {
+                if (!silent) toast('下发失败');
+                // 失败也要清焦点
+                $('btnForce').blur();
+            });
+        }
+
+        /* ========== [9] 状态采集与渲染 ========== */
+        /* ───────── 状态渲染 ───────── */
+        const fmtTemps = arr => arr.length
+            ? arr.map(v => `<span class="tcell ${tempClass(v)}">${Math.round(v)}°C</span>`).join('')
+            : '<span class="tcell">--°C</span>';
+
+        function setTemps(id, arr) {
+            $(id).innerHTML = fmtTemps(arr);
+        }
+
+        /* 温度分组：主板 / NVMe / 硬盘 与全局最高温来源 */
+        function readTemps(d) {
+            const board = Object.entries(d.board_temps || {})
+                .sort((x, y) => x[0].localeCompare(y[0]))
+                .map(([, v]) => v).filter(Number.isFinite);
+            const nvmes = [d.nvme0_temp, d.nvme1_temp].filter(Number.isFinite);
+            const diskEntries = Object.entries(d.disk_temps || {})
+                .filter(([k, v]) => k !== 'max_temp' && Number.isFinite(v))
+                .sort((x, y) => (parseInt(x[0], 10) || 0) - (parseInt(y[0], 10) || 0));
+            const disks = diskEntries.map(([, v]) => v);
+            const all = [d.cpu_temp, ...(d.cpu_core_temps || []), ...nvmes, ...board, ...disks].filter(Number.isFinite);
+            const mx = all.length ? Math.max(...all) : 0;
+            const src = mx === d.cpu_temp ? 'CPU' : nvmes.includes(mx) ? 'NVMe' : '主板/硬盘';
+            return { board, nvmes, diskEntries, disks, mx, src };
+        }
+
+        /* 顶部四个数值卡 + 紧急横幅 */
+        function paintSummary(d, tm) {
+            if (Number.isFinite(d.avg_temp)) $('avg').innerHTML = `<span class="${tempClass(d.avg_temp)}">${Math.round(d.avg_temp)}°C</span>`;
+            else $('avg').textContent = '--°C';
+            $('source').textContent = '当前由 ' + tm.src + ' 与控制曲线决定';
+            $('rpm').textContent = n(d.fan_rpm);
+            $('out').textContent = pStr(d.pwm || 0);
+            $('raw').textContent = '目标 ' + pFull(d.target_pwm)
+                + ' / 实时 ' + pFull(d.pwm);
+
+            const pwmGap = Math.abs((d.target_pwm || 0) - (d.pwm || 0));
+            /* 目标到达运行下限 → 标注钳制状态, 避免误以为数值未更新 */
+            const atMin = d.min_pwm != null && (d.target_pwm || 0) <= d.min_pwm;
+            $('segment').textContent = '目标 ' + pFull(d.target_pwm)
+                + ' / 实时 ' + pFull(d.pwm)
+                + ' · ' + n(d.fan_rpm) + ' RPM'
+                + (pwmGap > 15 ? ' · 追赶中' : '')
+                + (atMin ? ' · 下限钳制' : '');
+
+            if (tm.mx) $('hot').innerHTML = `<span class="${tempClass(tm.mx)}">${Math.round(tm.mx)}°C</span>`;
+            else $('hot').textContent = '--°C';
+            /* 紧急超温横幅: 任一传感器达后端 EMERGENCY_TEMP(70℃) 即告警 */
+            $('overBanner').classList.toggle('on', tm.mx >= 70);
+            $('hotSrc').textContent = '来自 ' + tm.src;
+
+            /* 模式卡策略摘要: 让"控制模式"一眼看清当前控温逻辑 */
+            let strat = '只读';
+            if (d.fan_control_enabled) {
+                strat = d.manual_mode
+                    ? `锁定 ${pStr(d.pwm || 0)}`
+                    : (d.run_mode === 'pid' && d.pid ? `PID ${d.pid.target}℃` : '曲线')
+                    + ` · 下限${d.min_pwm ?? '--'}`;
+            }
+            $('fresh').textContent = strat + ' · 更新 ' + new Date().toLocaleTimeString();
+        }
+
+        /* 事件记录列表（最新在前） */
+        function paintEvents(d) {
+            const evEl = $('evList');
+            if (!evEl) return;
+            const evs = Array.isArray(d.events) ? d.events : [];
+            if (!evs.length) { evEl.innerHTML = '<span class="muted">暂无事件</span>'; return; }
+            evEl.innerHTML = evs.map(e => {
+                const t = new Date((e.ts || 0) * 1000).toLocaleTimeString();
+                const txt = String(e.text || '').replace(/[<>&]/g,
+                    c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+                return `<div class="evrow ${e.level || 'info'}"><span>${t}</span>${txt}</div>`;
+            }).join('');
+        }
+
+        /* 各传感器分组温度 + hwmon 诊断 */
+        function paintSystem(d, tm) {
+            /* CPU 卡片: Package + 各核心温度(通常 5 个), 旧后端无此字段时退回单值 */
+            const cpuList = (Array.isArray(d.cpu_core_temps) && d.cpu_core_temps.length)
+                ? d.cpu_core_temps.filter(Number.isFinite)
+                : [d.cpu_temp].filter(Number.isFinite);
+            setTemps('cpu', cpuList);
+            setTemps('board', tm.board);
+            setTemps('nvme', tm.nvmes);
+            const cells = tm.diskEntries.map(([, v]) =>
+                `<span class="tcell ${tempClass(v)}">${Math.round(v)}°C</span>`).join('');
+            $('disk').innerHTML = cells || '<span class="tcell">--°C</span>';
+            $('nvmeCard').style.display = tm.nvmes.length ? '' : 'none';
+            $('module').textContent = '模块：' + (d.system?.module_loaded ? '已加载' : '缺失');
+            $('access').textContent = 'PWM：' + (d.system?.pwm_accessible ? '可读写' : '不可用');
+            $('path').textContent = d.system?.hwmon_path || '--';
+        }
+
+        /* 采样入缓冲（保留 2 小时，切窗口不丢数据），随后重画主曲线 */
+        function pushSample(d) {
+            if (!Number.isFinite(d.pwm) || !Number.isFinite(d.fan_rpm)) return;
+            monitorData.push({
+                ts: Date.now(), rpm: d.fan_rpm, pwm: d.pwm, tgt: d.target_pwm,
+                avg: d.avg_temp, cpu: d.cpu_temp
+            });
+            const cut = Date.now() - 7300000;
+            while (monitorData.length && monitorData[0].ts < cut) monitorData.shift();
+            if (viewMode !== 'manual') drawChart(viewMode);
+        }
+
+        /* 状态渲染入口 */
+        function paint(d) {
+            const tm = readTemps(d);
+            paintSummary(d, tm);
+            paintEvents(d);
+            paintSystem(d, tm);
+            pushSample(d);
+            if (viewMode === 'manual') syncManual();
+            syncModeTop();
+            graph('mini');   /* 迷你曲线随轮询刷新标注数字 */
+        }
+
+        function get() {
+            fetch(apiUrl('/api/status')).then(r => r.json()).then(d => {
+                D = d;
+                const on = $('online');
+                on.classList.remove('off');
+                on.textContent = '控制器在线';
+                refreshApiHint();
+                paint(d);
+                cvMaybeInit(d);
+                pidMaybeInit(d);
+            }).catch(() => {
+                const on = $('online');
+                on.classList.add('off');
+                on.textContent = '控制器不可达 · 点击设置';
+                on.title = '点击填写 NAS 的 IP 与端口';
+                graph('mini');   // 后端不可达时刷新迷你图为占位态
+            })
+        }
+
+        /* ========== [10] 迷你曲线（目标 PWM vs 实时 PWM） ========== */
+        /* ───────── 迷你曲线：目标 PWM vs 实时 PWM ───────── */
+        /* 迷你曲线无采样时的占位：一条基线 + 一行提示，避免卡片下方露出半高空白 */
+        function miniPlaceholder(ctx, w, h) {
+            const off = $('online') && $('online').classList.contains('off');
+            const txt = off ? '控制器不可达 · 暂无采样数据' : '暂无采样数据 · 等待控制器上报';
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = isDark ? 'rgba(140,160,185,0.35)' : 'rgba(120,135,155,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(2, h - 10);
+            ctx.lineTo(w - 4, h - 10);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = isDark ? 'rgba(143,165,188,0.75)' : 'rgba(104,123,144,0.85)';
+            ctx.font = '12px system-ui, "Microsoft YaHei", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(txt, w / 2, h / 2);
+            ctx.restore();
+        }
+
+        /* 迷你曲线：数据收集（实时 monitorData + 日志回填，去重后按时间排序） */
+        function miniCollect() {
+            const cut = Date.now() - miniWinMs;
+            const fromMonitor = monitorData.filter(d => d.ts >= cut);
+            const fromLogs = logs.filter(d => (d.ts * 1000) >= cut);
+            const tempMap = new Map();
+            fromMonitor.forEach(d => tempMap.set(d.ts, d));
+            fromLogs.forEach(d => tempMap.set(d.ts * 1000, { ts: d.ts * 1000, rpm: d.rpm, pwm: d.pwm, tgt: d.tgt, avg: d.avg, cpu: d.cpu }));
+            miniLogs = Array.from(tempMap.values()).sort((a, b) => a.ts - b.ts);
+            return miniLogs;
+        }
+
+        /* 迷你曲线：0-100% 水平虚线网格（0/25/50/75/100） */
+        function miniDrawGrid(ctx, w, h) {
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = isDark ? 'rgba(140,160,185,0.45)' : 'rgba(120,135,155,0.4)';
+            ctx.lineWidth = 1;
+            [0, 25, 50, 75, 100].forEach(pct => {
+                const y = h - 10 - (pct / 100) * (h - 20);
+                ctx.beginPath();
+                ctx.moveTo(2, y);
+                ctx.lineTo(w - 4, y);
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
+
+        /* 迷你曲线：实时 PWM 实线 + 目标 PWM 虚线，右上角标注，底部窗口文字 */
+        function miniDrawSeries(ctx, w, h) {
+            const ss = [
+                [SERIES_COLORS.pwm, x => pNum(x.pwm), '实时', 'pwm'],
+                [SERIES_COLORS.tgt, x => pNum(x.tgt), '目标', 'tgt']
+            ];
+            ctx.font = 'bold 12px "Microsoft YaHei", system-ui, sans-serif';
+            ctx.direction = 'ltr';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.textAlign = 'left';
+
+            /* 右上角单行标注（取最后一个采样的原始 0-255 值） */
+            const tail = miniLogs[miniLogs.length - 1];
+            const miniTag = '目标 ' + n(tail.tgt) + ' / 实时 ' + n(tail.pwm);
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'alphabetic';
+            ctx.strokeStyle = SERIES_COLORS.pwm;
+            ctx.fillStyle = SERIES_COLORS.pwm;
+            ctx.fillText(miniTag, w - 8, 16);
+            ctx.textAlign = 'left';
+
+            ss.forEach(([col, fn, , key]) => {
+                ctx.strokeStyle = col;
+                ctx.fillStyle = col;
+                ctx.setLineDash(key === 'tgt' ? [4, 3] : []);
+                ctx.beginPath();
+                let started = false;
+                miniLogs.forEach((d, i) => {
+                    const v = fn(d);
+                    if (!Number.isFinite(v)) return;
+                    const x = i / (miniLogs.length - 1) * (w - 4) + 2,
+                        y = h - 10 - Math.min(Math.max(v, 0), 100) / 100 * (h - 20);
+                    started ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), started = true);
+                });
+                ctx.stroke();
+                /* 与旧版保持一致：该窗口文字原本在两条曲线各绘一次（半透明白字叠加），
+                   只绘一次会让它明显变淡，故仍按原样两次绘制 */
+                miniDrawWindowLabel(ctx, w, h);
+            });
+        }
+
+        /* 迷你曲线底部正中窗口状态文字 3分/10分/30分/1时 */
+        function miniDrawWindowLabel(ctx, w, h) {
+            const mapLabelMini = { 180000: '3分', 600000: '10分', 1800000: '30分', 3600000: '1时' };
+            ctx.setLineDash([]);
+            ctx.font = '11px system-ui';
+            ctx.fillStyle = isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.6)';
+            ctx.textAlign = 'center';
+            ctx.fillText(mapLabelMini[miniWinMs], w / 2, h - 4);
+            ctx.textAlign = 'left';
+        }
+
+        /* 迷你曲线：悬停十字线 + 两色圆点 + 三行气泡（实时 / 目标 / RPM） */
+        function miniDrawHover(ctx, w, h) {
+            if (!(miniHover != null && miniHover >= 0 && miniHover < miniLogs.length)) return;
+            const d = miniLogs[miniHover];
+            const hx = miniHover / (miniLogs.length - 1) * (w - 4) + 2;
+            const yOfv = v => h - 10 - Math.min(Math.max(v, 0), 100) / 100 * (h - 20);
+
+            ctx.setLineDash([3, 3]);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = isDark ? 'rgba(220,231,245,.4)' : 'rgba(16,36,62,.35)';
+            ctx.beginPath();
+            ctx.moveTo(hx, 4);
+            ctx.lineTo(hx, h - 14);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            [[d.pwm, SERIES_COLORS.pwm], [d.tgt, SERIES_COLORS.tgt]].forEach(([raw, col]) => {
+                if (!Number.isFinite(raw)) return;
+                ctx.fillStyle = col;
+                ctx.beginPath();
+                ctx.arc(hx, yOfv(pNum(raw)), 3, 0, 7);
+                ctx.fill();
+            });
+
+            const miniLines = ['实时 ' + pFull(d.pwm), '目标 ' + pFull(d.tgt), n(d.rpm) + ' RPM'];
+            const leftSide = hx > w / 2;
+            ctx.textAlign = leftSide ? 'right' : 'left';
+            const ix = leftSide ? hx - 6 : hx + 6;
+            const lineH = 14;
+            ctx.font = '11px system-ui, "Microsoft YaHei", sans-serif';
+            let maxW = 0;
+            miniLines.forEach(l => { maxW = Math.max(maxW, ctx.measureText(l).width); });
+            const bw = maxW + 10;
+            const bh = miniLines.length * lineH + 6;
+            const bx = leftSide ? ix - bw : ix - 2;
+            const by = Math.max(3, Math.min(h - bh - 3, 5));
+
+            /* destination-over：底板画在已有内容下层 → 曲线网格透到半透气泡上方，且不必读画布像素 */
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-over';
+            if (isDark) {
+                ctx.fillStyle = 'rgba(15,23,34,.92)';
+                ctx.strokeStyle = 'rgba(220,231,245,.22)';
+            } else {
+                ctx.fillStyle = 'rgba(255,255,255,.42)';
+                ctx.strokeStyle = 'rgba(160,160,160,.38)';
+            }
+            ctx.fillRect(bx, by, bw, bh);
+            ctx.lineWidth = 1;
+            ctx.strokeRect(bx + .5, by + .5, bw - 1, bh - 1);
+            ctx.restore();
+
+            const cols = isDark
+                ? [SERIES_COLORS.pwm, SERIES_COLORS.tgt, '#dce7f5']
+                : [SERIES_COLORS.pwm, SERIES_COLORS.tgt, '#10243e'];
+            miniLines.forEach((ln, i) => {
+                ctx.fillStyle = cols[i];
+                ctx.fillText(ln, ix, by + 13 + i * lineH);
+            });
+            ctx.textAlign = 'left';
+        }
+
+        /* 迷你曲线入口：建画布 → 取数 → 无数据走占位 → 网格/曲线/悬停三层 */
+        function graph(id) {
+            const c = $(id);
+            if (!c) return;
+            const w = c.clientWidth, h = c.clientHeight;
+            if (w < 20 || h < 20) return;
+            const dpr = devicePixelRatio || 1;
+            c.width = Math.round(w * dpr);
+            c.height = Math.round(h * dpr);
+            const ctx = c.getContext('2d', { willReadFrequently: true });
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, w, h);
+
+            if (miniCollect().length < 2) { miniPlaceholder(ctx, w, h); return; }
+            miniDrawGrid(ctx, w, h);
+            miniDrawSeries(ctx, w, h);
+            miniDrawHover(ctx, w, h);
+        }
+        /* 迷你画布悬停交互(初始化一次) */
+        (function () {
+            const c = $('mini');
+            if (!c) return;
+            c.addEventListener('mousemove', ev => {
+                if (miniLogs.length < 1) return;   // ✅ 防止越界
+                const r = c.getBoundingClientRect();
+                const fx = (ev.clientX - r.left - 2) / Math.max(1, r.width - 4);
+                miniHover = Math.max(0, Math.min(miniLogs.length - 1, Math.round(fx * (miniLogs.length - 1))));
+                graph('mini');
+            });
+            c.addEventListener('mouseleave', () => {
+                miniHover = null;
+                graph('mini');
+            });
+            // 单击循环切换窗口
+            c.addEventListener('click', () => {
+                let idx = MINI_WIN_OPTIONS.indexOf(miniWinMs);
+                idx = (idx + 1) % MINI_WIN_OPTIONS.length;
+                miniWinMs = MINI_WIN_OPTIONS[idx];
+                localStorage.setItem('miniWinMs', String(miniWinMs));
+                miniHover = null;
+                graph('mini');
+            });
+        })();
+
+        function getLog() {
+            fetch(apiUrl('/api/log')).then(r => r.json()).then(x => {
+                logs = x.log || [];
+                seedFromLog(logs);
+                graph('mini');
+            }).catch(() => {
+                /* 后端未就绪/请求失败时静默，下一轮轮询自动重试，避免未处理的 Promise 拒绝 */
+            })
+        }
+
+        /* ========== [11] 曲线编辑器（SVG 拖拽 + 行输入） ========== */
+        /* ───────── 曲线编辑器: SVG 拖拽 + 行输入, 保存到 /api/curve ───────── */
+        let cv = null, cvInitDone = false;
+        const CV_T0 = 25, CV_T1 = 90, CV_PAD = 8;
+
+        function cvMaybeInit(d) {
+            if (cvInitDone || !Array.isArray(d.curve) || d.curve.length < 2) return;
+            cvInitDone = true;
+            cvReload(d.curve);
+        }
+
+        function cvReload(curve) {
+            cv = (curve || (D && D.curve) || []).map(pt => ({ temp: +pt.temp, pwm: +pt.pwm }));
+            cv.sort((a, b) => a.temp - b.temp);
+            cvDrawAll();
+            $('cvMsg').textContent = '';
+        }
+
+        function cvX(t, w) {
+            return CV_PAD + (Math.min(Math.max(t, CV_T0), CV_T1) - CV_T0) / (CV_T1 - CV_T0) * (w - 2 * CV_PAD);
+        }
+        function cvY(v, h) {
+            return h - CV_PAD - v / 255 * (h - 2 * CV_PAD);
+        }
+
+        function cvDrawSvg() {
+            if (!cv) return;
+            const svg = $('curveSvg');
+            const w = svg.clientWidth || 600, h = svg.clientHeight || 170;
+            svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            let g = '';
+            [0, 64, 128, 192, 255].forEach(v => {
+                g += `<line x1="${CV_PAD}" x2="${w - CV_PAD}" y1="${cvY(v, h).toFixed(1)}" y2="${cvY(v, h).toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>`;
+            });
+            g += `<polyline points="${cv.map(pt => `${cvX(pt.temp, w).toFixed(1)},${cvY(pt.pwm, h).toFixed(1)}`).join(' ')}" fill="none" stroke="${SERIES_COLORS.tgt}" stroke-width="2.4" stroke-linejoin="round"/>`;
+            cv.forEach((pt, i) => {
+                g += `<circle data-i="${i}" cx="${cvX(pt.temp, w).toFixed(1)}" cy="${cvY(pt.pwm, h).toFixed(1)}" r="6" fill="${SERIES_COLORS.tgt}"/>`;
+            });
+            svg.innerHTML = g;
+        }
+
+        function cvDrawRows() {
+            if (!cv) return;
+            $('cvRows').innerHTML = cv.map((pt, i) =>
+                `<div class="cvrow"><span>点${i + 1}</span>`
+                + `<input type="number" min="30" max="85" step="1" value="${pt.temp}" data-k="temp" data-i="${i}" oninput="cvInput(this)">`
+                + `<input type="number" min="0" max="255" step="1" value="${pt.pwm}" data-k="pwm" data-i="${i}" oninput="cvInput(this)">`
+                + `<button title="删除此点" onclick="cvDel(${i})">×</button></div>`).join('');
+        }
+
+        function cvDrawAll() { cvDrawSvg(); cvDrawRows(); }
+
+        function cvInput(el) {
+            const i = +el.dataset.i, k = el.dataset.k, v = +el.value;
+            if (!cv || !cv[i]) return;
+
+            // ✅ 统一使用 CV_T0 / CV_T1
+            const min = k === 'temp' ? CV_T0 : 0;
+            const max = k === 'temp' ? CV_T1 : 255;
+
+            cv[i][k] = Math.max(min, Math.min(max, v));
+            cvDrawSvg();
+        }
+
+        function cvSyncRow(i) {
+            const row = $('cvRows').children[i];
+            if (!row) return;
+            row.children[1].value = cv[i].temp;
+            row.children[2].value = cv[i].pwm;
+        }
+
+        (function () {
+            const svg = $('curveSvg');
+            let drag = -1;
+            svg.addEventListener('pointerdown', ev => {
+                const t = ev.target;
+                if (t.tagName === 'circle' && t.dataset.i != null) {
+                    drag = +t.dataset.i;
+                    svg.setPointerCapture(ev.pointerId);
+                }
+            });
+            svg.addEventListener('pointermove', ev => {
+                if (drag < 0) return;
+                const r = svg.getBoundingClientRect();
+                const w = r.width, h = r.height;
+                const temp = Math.round(CV_T0 + (ev.clientX - r.left - CV_PAD) / (w - 2 * CV_PAD) * (CV_T1 - CV_T0));
+                const pwm = Math.max(0, Math.min(255, Math.round((h - CV_PAD - (ev.clientY - r.top)) / (h - 2 * CV_PAD) * 255)));
+                const lo = drag ? cv[drag - 1].temp + 1 : 30;
+                const hi = drag < cv.length - 1 ? cv[drag + 1].temp - 1 : 85;
+                cv[drag].temp = Math.max(lo, Math.min(hi, temp));
+                cv[drag].pwm = pwm;
+                cvDrawSvg();
+                cvSyncRow(drag);
+            });
+            svg.addEventListener('pointerup', () => drag = -1);
+            svg.addEventListener('pointerleave', () => drag = -1);
+        })();
+
+        function cvAdd() {
+            if (!cv) return;
+            const last = cv[cv.length - 1] || { temp: CV_T0, pwm: 128 };
+            if (last.temp >= CV_T1) {
+                toast('已达最高温度 ' + CV_T1 + '°C');
+                return;
+            }
+            let newTemp = Math.min(CV_T1, last.temp + 5);
+            // ✅ 防止重复温度
+            if (cv.some(p => p.temp === newTemp)) {
+                toast('该温度点已存在');
+                return;
+            }
+
+            cv.push({ temp: newTemp, pwm: last.pwm });
+            cv.sort((a, b) => a.temp - b.temp);
+            cvDrawAll();
+        }
+
+        function cvDel(i) {
+            if (cv.length <= 2) { toast('至少保留 2 个点'); return; }
+            cv.splice(i, 1);
+            cvDrawAll();
+        }
+
+        function cvSave() {
+            if (!cv) return;
+            const payload = cv.map(pt => ({ temp: Math.round(pt.temp), pwm: Math.max(0, Math.min(255, Math.round(pt.pwm))) }))
+                .sort((a, b) => a.temp - b.temp)
+                .filter((p, i, arr) => !i || arr[i - 1].temp !== p.temp);
+            fetch(apiUrl('/api/curve'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ curve: payload })
+            }).then(r => r.json()).then(x => {
+                if (!x.ok) throw 0;
+                cv = payload.map(p => ({ ...p }));
+                cvDrawAll();
+                $('cvMsg').textContent = '已保存';
+                setTimeout(() => $('cvMsg').textContent = '', 2500);
+                toast('控制曲线已更新');
+                if (D) D.curve = payload;
+            }).catch(() => toast('曲线保存失败'));
+        }
+
+        /* ========== [12] PID 参数编辑器 ========== */
+        /* ───────── PID 参数编辑: 读取/保存, 持久化到配置 JSON ───────── */
+        let pidInitDone = false;
+
+        function pidMaybeInit(d) {
+            if (pidInitDone || !d || !d.pid) return;
+            pidInitDone = true;
+            pidReload();
+        }
+
+        function pidDefaults() {
+            const def = (D && D.defaults) || {};
+            const pid = def.pid || {}, boot = def.boot || {};
+            $('pidKp').value = pid.kp ?? '';
+            $('pidKi').value = pid.ki ?? '';
+            $('pidKd').value = pid.kd ?? '';
+            $('pidTarget').value = pid.target ?? '';
+            $('bootBoost').value = boot.boot_boost ?? '';
+            $('bootMin').value = boot.boot_min_pwm ?? '';
+            const defTs = (D && D.defaults && D.defaults.temp_source) || 'all';
+            $('tempSource').value = defTs;
+            $('pidMsg').textContent = '已填入默认参数, 点保存生效';
+        }
+
+        function pidReload() {
+            const pid = (D && D.pid) || {};
+            $('pidKp').value = pid.kp ?? '';
+            $('pidKi').value = pid.ki ?? '';
+            $('pidKd').value = pid.kd ?? '';
+            $('pidTarget').value = pid.target ?? '';
+            const boot = (D && D.boot) || {};
+            $('bootMin').value = boot.boot_min_pwm ?? '';
+            $('bootBoost').value = boot.boot_boost ?? '';
+            $('tempSource').value = (D && D.temp_source) || 'all';
+            $('pidMsg').textContent = '';
+        }
+
+        function pidSave() {
+            const kp = parseFloat($('pidKp').value), ki = parseFloat($('pidKi').value);
+            const kd = parseFloat($('pidKd').value), target = parseFloat($('pidTarget').value);
+            if ([kp, ki, kd, target].some(v => !Number.isFinite(v))) {
+                toast('请完整填写 Kp/Ki/Kd/目标温度');
+                return;
+            }
+            const body = { pid: { kp, ki, kd, target } };
+            /* boot 参数可选填写, 填了才提交 */
+            const bmin = parseFloat($('bootMin').value), boost = parseFloat($('bootBoost').value);
+            if (Number.isFinite(bmin) || Number.isFinite(boost)) {
+                if (!Number.isFinite(bmin) || !Number.isFinite(boost)) {
+                    toast('下限PWM 与 升速PWM 需同时填写(或都留空)');
+                    return;
+                }
+                body.boot = { boot_min_pwm: Math.round(bmin), boot_boost: Math.round(boost) };
+            }
+            /* 控温依据选择 */
+            const ts = $('tempSource').value;
+            if (ts && ts !== ((D && D.temp_source) || 'all')) body.temp_source = ts;
+            fetch(apiUrl('/api/curve'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            }).then(r => r.json()).then(x => {
+                if (!x.ok) throw 0;
+                if (D) {
+                    D.pid = x.pid || body.pid;
+                    if (x.boot) D.boot = x.boot;
+                    if (x.temp_source) D.temp_source = x.temp_source;
+                }
+                pidReload();
+                $('pidMsg').textContent = '已保存';
+                setTimeout(() => $('pidMsg').textContent = '', 2500);
+                toast('参数已更新');
+            }).catch(() => {
+                $('pidMsg').textContent = '保存失败';
+                toast('参数保存失败');
+            });
+        }
+
+        getLog();
+        /* ========== [13] 启动初始化与事件绑定 ========== */
+
+        setView('rpm');
+        mSyncFill();   // 手动面板首次显示前先把滑块进度条填充对齐
+        graph('mini'); // 首帧先画一次(无数据即占位), 不要等 2s 轮询
+        refreshApiHint();   // 高级诊断里的后端地址
+        /* 弹窗键盘操作: Enter 连接, Esc 关闭 */
+        $('epMask').addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); saveEndpoint(); }
+            else if (e.key === 'Escape') closeEndpoint();
+        });
+        /* 恢复上次的历史窗口选择(放在脚本末尾, 确保所有声明已初始化) */
+        (function () {
+            const saved = +(localStorage.getItem('fanHist') || 0);
+            if ([180000, 600000, 1800000, 3600000].includes(saved)) setWin(saved);
+        })();
+        // ================初始化fanK显示 ===============
+        const el = document.getElementById("fank-value");
+        if (el) el.textContent = fanK.toFixed(4);
+        // ==============================================
+        get();
+        setInterval(get, 2000);
+        setInterval(getLog, 10000);
+        addEventListener('resize', () => {
+            graph('mini');
+            if (viewMode !== 'manual') drawChart(viewMode);
+            cvDrawSvg();
+        })
+    </script>
+</body>
+
+</html>
